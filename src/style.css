@@ -5469,13 +5469,25 @@ body.in-login-view #main-footer {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    margin-top: -50px;
+    padding: 0 1.25rem 1.5rem;
+  }
+  .profile-avatar-wrap {
+    margin-top: -52px;
+  }
+  .profile-hero-info {
+    padding-top: 0.75rem;
+    min-width: 100%;
   }
   .profile-name-row {
+    justify-content: center;
+  }
+  .profile-handle, .profile-college-line {
     justify-content: center;
   }
   .profile-hero-actions {
     width: 100%;
     justify-content: center;
+    padding-top: 0.75rem;
+    margin-left: 0;
   }
 }
