@@ -1,0 +1,1668 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evently | Cloud-Based College Event Management System</title>
+    <meta name="description" content="Discover upcoming college events, explore what's happening each day in one unified calendar, and register with ease." />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/src/style.css" />
+    
+    <!-- Google Identity Services (GIS) SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body>
+    <!-- Redirect Notice Toast Modal -->
+    <div id="redirect-modal" class="redirect-modal" aria-hidden="true">
+      <div class="redirect-card">
+        <div class="redirect-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="redirect-info">
+          <h4 id="redirect-title">Authentication Required</h4>
+          <p id="redirect-desc">Redirecting you to <strong>/login</strong> to access Evently...</p>
+        </div>
+        <div class="redirect-spinner"></div>
+      </div>
+    </div>
+
+    <!-- MAIN HEADER / NAVIGATION (FOR LANDING & PROTECTED PAGES) -->
+    <header class="header" id="main-header">
+      <nav class="navbar" aria-label="Main Navigation">
+        <a href="/" class="brand-logo-link route-link" aria-label="Evently Home">
+          <div class="brand-owl-mark">
+            <svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+              <rect width="40" height="40" rx="10" fill="url(#logo-grad)" />
+              <path d="M12 14C12 11.8 14.5 10 18 10C21.5 10 24 11.8 24 14V22C24 25.3 21.3 28 18 28C14.7 28 12 25.3 12 22V14Z" fill="#FFFFFF"/>
+              <circle cx="16" cy="16" r="3.5" fill="#1E293B"/>
+              <circle cx="24" cy="16" r="3.5" fill="#1E293B"/>
+              <path d="M20 18L18.5 21H21.5L20 18Z" fill="#F59E0B"/>
+              <path d="M11 11L20 7L29 11L20 15L11 11Z" fill="#0F172A"/>
+              <defs>
+                <linearGradient id="logo-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F59E0B"/>
+                  <stop offset="1" stop-color="#D97706"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="brand-text-group">
+            <span class="brand-name">Evently</span>
+            <span class="brand-tag">CAMPUS CLOUD</span>
+          </div>
+        </a>
+
+        <!-- Desktop Nav Links -->
+        <ul class="nav-links" id="nav-links-container">
+          <li><a href="/" class="nav-link route-link">Home</a></li>
+          <li><a href="/events" class="nav-link route-link">Events</a></li>
+          <li><a href="/calendar" class="nav-link route-link">Calendar</a></li>
+          <li><a href="/about" class="nav-link route-link">About</a></li>
+          <li>
+            <button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Light / Dark Theme">
+              <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+          </li>
+          <li id="nav-auth-slot"><a href="/login" class="nav-btn route-link">Login</a></li>
+        </ul>
+
+        <!-- Mobile Menu Hamburger Button -->
+        <button class="mobile-toggle-btn" id="mobile-toggle-btn" aria-label="Toggle Navigation Menu">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+      </nav>
+
+      <!-- Mobile Navigation Drawer -->
+      <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+        <ul class="mobile-nav-links">
+          <li><a href="/" class="mobile-nav-link route-link">Home</a></li>
+          <li><a href="/events" class="mobile-nav-link route-link">Events</a></li>
+          <li><a href="/calendar" class="mobile-nav-link route-link">Calendar</a></li>
+          <li><a href="/about" class="mobile-nav-link route-link">About</a></li>
+          <li class="mobile-theme-row">
+            <span>Theme Preference</span>
+            <button class="theme-toggle-btn mobile-theme-btn" id="mobile-theme-toggle-btn" aria-label="Toggle Theme">
+              <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+          </li>
+          <li class="mobile-cta-item" id="mobile-auth-slot"><a href="/login" class="mobile-nav-btn route-link">Login to Evently</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main id="app-main">
+      <!-- ===================================================================
+           VIEW 1: LANDING PAGE
+           =================================================================== -->
+      <div id="view-landing" class="page-view active">
+        <!-- HERO SECTION -->
+        <section class="hero-section">
+          <div class="hero-bg-accent"></div>
+          <div class="container hero-container">
+            <!-- Left Column: Hero Text Content -->
+            <div class="hero-content">
+              <div class="pill-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Cloud-Based Campus Event Platform</span>
+              </div>
+
+              <h1 class="hero-title">
+                Your College Events,<br />
+                <span class="highlight-text">All in One Calendar.</span>
+              </h1>
+
+              <p class="hero-subtitle">
+                Discover upcoming college events, explore what's happening each day, and register with ease.
+              </p>
+
+              <div class="hero-cta-group">
+                <a href="/login" class="btn btn-primary route-link">
+                  <span>Get Started</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </a>
+                
+                <a href="#discovery" class="btn btn-secondary anchor-scroll">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>Preview Calendar</span>
+                </a>
+              </div>
+
+              <div class="hero-trust-metrics">
+                <div class="metric-item">
+                  <span class="metric-value">50+</span>
+                  <span class="metric-label">College Clubs</span>
+                </div>
+                <div class="metric-divider"></div>
+                <div class="metric-item">
+                  <span class="metric-value">12k+</span>
+                  <span class="metric-label">Registered Students</span>
+                </div>
+                <div class="metric-divider"></div>
+                <div class="metric-item">
+                  <span class="metric-value">100%</span>
+                  <span class="metric-label">Calendar Sync</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Visual Hero Elements (Owl Mascot & Calendar Preview) -->
+            <div class="hero-visual-wrapper">
+              <div class="visual-stage">
+                <div class="floating-badge badge-top-left floating-anim-slow">
+                  <div class="badge-icon icon-amber">🔥</div>
+                  <div class="badge-text-box">
+                    <span class="b-title">Sep 24 Hackathon</span>
+                    <span class="b-sub">180 spots remaining</span>
+                  </div>
+                </div>
+
+                <div class="floating-badge badge-bottom-right floating-anim-medium">
+                  <div class="badge-icon icon-green">⚡</div>
+                  <div class="badge-text-box">
+                    <span class="b-title">Live Sync Active</span>
+                    <span class="b-sub">Cloud updated 1m ago</span>
+                  </div>
+                </div>
+
+                <!-- Vector Owl Mascot Container -->
+                <div class="owl-character-wrapper" id="owl-character">
+                  <div class="owl-speech-bubble">
+                    <span>Pick a date to explore! 🗓️</span>
+                  </div>
+
+                  <svg class="owl-svg" viewBox="0 0 240 240" width="240" height="240" fill="none">
+                    <ellipse cx="120" cy="222" rx="65" ry="10" fill="rgba(0, 0, 0, 0.15)" class="owl-shadow-ellipse" />
+                    <g class="owl-character-group">
+                      <path d="M54 145C44 160 38 190 56 212C68 208 78 190 76 172C74 155 64 148 54 145Z" fill="#6B1D1D" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                      <path d="M120 48C70 48 45 80 45 138C45 195 72 222 120 222C168 222 195 195 195 138C195 80 170 48 120 48Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="4" stroke-linejoin="round" />
+                      <path d="M120 120C90 120 72 140 72 178C72 206 92 218 120 218C148 218 168 206 168 178C168 140 150 120 120 120Z" fill="#FDEBD0" stroke="#3D0F0F" stroke-width="3" />
+                      <path d="M102 152C108 158 114 158 120 152" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <path d="M122 152C128 158 134 158 140 152" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <path d="M112 170C118 176 124 176 130 170" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <path d="M92 170C98 176 104 176 110 170" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <path d="M132 170C138 176 144 176 150 170" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <path d="M102 188C108 194 114 194 120 188" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                      <path d="M122 188C128 194 134 194 140 188" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+                      <path d="M72 65C52 45 42 50 48 72C58 75 66 72 72 65Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                      <path d="M168 65C188 45 198 50 192 72C182 75 174 72 168 65Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                      <path d="M72 82C72 82 85 70 120 70C155 70 168 82 168 82C178 100 172 128 152 135C132 142 120 132 120 132C120 132 108 142 88 135C68 128 62 100 72 82Z" fill="#F5CBA7" stroke="#3D0F0F" stroke-width="3" />
+                      <polygon points="120,105 110,128 130,128" fill="#F39C12" stroke="#3D0F0F" stroke-width="3" stroke-linejoin="round" />
+
+                      <g class="owl-glasses">
+                        <circle cx="88" cy="104" r="23" fill="#FDEBD0" opacity="0.2" />
+                        <circle cx="88" cy="104" r="23" stroke="#221A1A" stroke-width="4.5" fill="none" />
+                        <circle cx="152" cy="104" r="23" fill="#FDEBD0" opacity="0.2" />
+                        <circle cx="152" cy="104" r="23" stroke="#221A1A" stroke-width="4.5" fill="none" />
+                        <path d="M111 100C114 96 126 96 129 100" stroke="#221A1A" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                        <path d="M65 104L52 98" stroke="#221A1A" stroke-width="4" stroke-linecap="round" />
+                        <path d="M175 104L188 98" stroke="#221A1A" stroke-width="4" stroke-linecap="round" />
+                        <path d="M76 106C82 98 94 98 100 106" stroke="#221A1A" stroke-width="3.5" stroke-linecap="round" fill="none" class="owl-sparkle" />
+                        <path d="M140 106C146 98 158 98 164 106" stroke="#221A1A" stroke-width="3.5" stroke-linecap="round" fill="none" class="owl-sparkle" />
+                      </g>
+
+                      <g class="owl-cap">
+                        <path d="M80 46C80 46 95 60 120 60C145 60 160 46 160 46" fill="#631717" stroke="#3D0F0F" stroke-width="3.5" />
+                        <polygon points="120,12 196,36 120,58 44,36" fill="#8B2626" stroke="#3D0F0F" stroke-width="4" stroke-linejoin="round" />
+                        <polygon points="120,16 186,36 120,52 54,36" fill="#A52A2A" />
+                        <circle cx="120" cy="36" r="4" fill="#3D0F0F" />
+                        <path d="M120 36L176 50L182 66" stroke="#3D0F0F" stroke-width="3" fill="none" />
+                        <polygon points="178,66 186,66 182,78" fill="#3D0F0F" />
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+
+                <!-- CALENDAR PREVIEW CARD (September 2026) -->
+                <div class="calendar-preview-card" id="calendar-preview-card">
+                  <div class="cal-card-header">
+                    <div class="cal-title-group">
+                      <span class="cal-month-name">September 2026</span>
+                      <span class="cal-subtitle">Campus Events Schedule</span>
+                    </div>
+                    <div class="cal-nav-arrows">
+                      <button class="cal-arrow-btn" aria-label="Previous Month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                      <button class="cal-arrow-btn" aria-label="Next Month"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+                    </div>
+                  </div>
+
+                  <div class="cal-weekdays-grid">
+                    <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="weekend">Sat</span><span class="weekend">Sun</span>
+                  </div>
+
+                  <div class="cal-days-grid">
+                    <div class="cal-day other-month">31</div>
+                    <div class="cal-day">1</div><div class="cal-day">2</div><div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day weekend">5</div><div class="cal-day weekend">6</div>
+                    <div class="cal-day">7</div><div class="cal-day">8</div><div class="cal-day">9</div><div class="cal-day">10</div><div class="cal-day">11</div>
+                    <div class="cal-day weekend has-event event-minor" data-event-id="coding-sprint"><span class="day-num">12</span><span class="event-dot dot-blue"></span></div>
+                    <div class="cal-day weekend">13</div>
+                    <div class="cal-day">14</div><div class="cal-day">15</div><div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day">18</div>
+                    <div class="cal-day weekend highlighted-date date-orange active-preview" data-event-id="cultural-fest"><span class="day-num">19</span><span class="event-pill-indicator">Cultural</span></div>
+                    <div class="cal-day weekend">20</div>
+                    <div class="cal-day">21</div><div class="cal-day">22</div><div class="cal-day">23</div>
+                    <div class="cal-day highlighted-date date-gold" data-event-id="hackathon"><span class="day-num">24</span><span class="event-pill-indicator">Hackathon</span></div>
+                    <div class="cal-day">25</div><div class="cal-day weekend">26</div><div class="cal-day weekend">27</div>
+                    <div class="cal-day has-event event-minor" data-event-id="robotics"><span class="day-num">28</span><span class="event-dot dot-amber"></span></div>
+                    <div class="cal-day">29</div><div class="cal-day">30</div>
+                    <div class="cal-day other-month">1</div><div class="cal-day other-month">2</div><div class="cal-day other-month weekend">3</div><div class="cal-day other-month weekend">4</div>
+                  </div>
+
+                  <div class="cal-mini-tooltip" id="cal-mini-tooltip">
+                    <div class="mini-tooltip-header">
+                      <span class="mini-badge-type">FEATURED EVENT</span>
+                      <span class="mini-date-str">Saturday, Sep 19</span>
+                    </div>
+                    <h4 class="mini-event-title">Sunburn Campus Cultural Beats '26</h4>
+                    <div class="mini-event-meta">
+                      <span>📍 Open Amphitheatre</span>
+                      <span>⏰ 5:00 PM - 10:00 PM</span>
+                    </div>
+                    <a href="/login" class="mini-event-cta route-link">Register via Calendar →</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DISCOVERY SECTION -->
+        <section id="discovery" class="section discovery-section">
+          <div class="container">
+            <div class="section-header text-center">
+              <span class="section-tag">SIMPLIFIED CAMPUS LIFE</span>
+              <h2 class="section-title">How Evently Transforms Campus Discovery</h2>
+              <p class="section-description">No more scrolling endlessly through chat groups or noticeboards. Everything is date-indexed on your college calendar.</p>
+            </div>
+
+            <div class="steps-grid">
+              <div class="step-card">
+                <div class="step-number">01</div>
+                <div class="step-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><circle cx="12" cy="15" r="2" fill="#F59E0B"></circle></svg>
+                </div>
+                <h3 class="step-title">Select Any Date</h3>
+                <p class="step-desc">Open the interactive cloud calendar and pick any date to view all events scheduled by various departments and student clubs.</p>
+              </div>
+
+              <div class="step-card">
+                <div class="step-number">02</div>
+                <div class="step-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><path d="M11 8v6M8 11h6"></path></svg>
+                </div>
+                <h3 class="step-title">Explore & Filter</h3>
+                <p class="step-desc">Filter by interest: Technical Hackathons, Cultural Fests, Sports Leagues, Guest Lectures, or Club Orientation sessions.</p>
+              </div>
+
+              <div class="step-card">
+                <div class="step-number">03</div>
+                <div class="step-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <h3 class="step-title">Instant Registration</h3>
+                <p class="step-desc">Click to register with your college email. Receive instant digital passes with QR codes for hassle-free venue entry.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CTA BANNER -->
+        <section class="cta-section">
+          <div class="container">
+            <div class="cta-card">
+              <div class="cta-content">
+                <h2>Ready to Discover What's Happening on Campus?</h2>
+                <p>Join thousands of students who discover and register for college events seamlessly.</p>
+                <a href="/login" class="btn btn-primary btn-lg route-link"><span>Get Started Now</span></a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ===================================================================
+           VIEW 2: LOGIN PAGE (SPLIT SCREEN - MATCHING REFERENCE IMAGE)
+           =================================================================== -->
+      <div id="view-login" class="page-view">
+        <section class="login-split-page">
+          <div class="login-split-container">
+            
+            <!-- LEFT PANEL — SIGN IN (WHITE BACKGROUND) -->
+            <div class="login-panel-left">
+              <!-- Top Left Brand Logo Header -->
+              <div class="login-brand-header">
+                <a href="/" class="brand-logo-link route-link" aria-label="Evently Home">
+                  <div class="brand-owl-mark">
+                    <svg viewBox="0 0 40 40" width="30" height="30" fill="none">
+                      <rect width="40" height="40" rx="8" fill="url(#logo-grad-login-view)" />
+                      <path d="M12 14C12 11.8 14.5 10 18 10C21.5 10 24 11.8 24 14V22C24 25.3 21.3 28 18 28C14.7 28 12 25.3 12 22V14Z" fill="#FFFFFF"/>
+                      <circle cx="16" cy="16" r="3.5" fill="#1E293B"/>
+                      <circle cx="24" cy="16" r="3.5" fill="#1E293B"/>
+                      <path d="M20 18L18.5 21H21.5L20 18Z" fill="#F59E0B"/>
+                      <path d="M11 11L20 7L29 11L20 15L11 11Z" fill="#0F172A"/>
+                      <defs>
+                        <linearGradient id="logo-grad-login-view" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#F59E0B"/>
+                          <stop offset="1" stop-color="#D97706"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                  <span class="brand-name font-bold text-xl">Evently</span>
+                </a>
+              </div>
+
+              <!-- Owl Mascot Peeking Near Boundary -->
+              <div class="login-owl-peeking">
+                <svg class="login-owl-svg" viewBox="0 0 240 240" width="180" height="180" fill="none">
+                  <g class="owl-character-group">
+                    <path d="M54 145C44 160 38 190 56 212C68 208 78 190 76 172C74 155 64 148 54 145Z" fill="#6B1D1D" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                    <path d="M120 48C70 48 45 80 45 138C45 195 72 222 120 222C168 222 195 195 195 138C195 80 170 48 120 48Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="4" stroke-linejoin="round" />
+                    <path d="M120 120C90 120 72 140 72 178C72 206 92 218 120 218C148 218 168 206 168 178C168 140 150 120 120 120Z" fill="#FDEBD0" stroke="#3D0F0F" stroke-width="3" />
+                    <path d="M102 152C108 158 114 158 120 152" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                    <path d="M122 152C128 158 134 158 140 152" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                    <path d="M72 65C52 45 42 50 48 72C58 75 66 72 72 65Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                    <path d="M168 65C188 45 198 50 192 72C182 75 174 72 168 65Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                    <path d="M72 82C72 82 85 70 120 70C155 70 168 82 168 82C178 100 172 128 152 135C132 142 120 132 120 132C120 132 108 142 88 135C68 128 62 100 72 82Z" fill="#F5CBA7" stroke="#3D0F0F" stroke-width="3" />
+                    <polygon points="120,105 110,128 130,128" fill="#F39C12" stroke="#3D0F0F" stroke-width="3" stroke-linejoin="round" />
+
+                    <g class="owl-glasses">
+                      <circle cx="88" cy="104" r="23" fill="#FDEBD0" opacity="0.2" />
+                      <circle cx="88" cy="104" r="23" stroke="#221A1A" stroke-width="4.5" fill="none" />
+                      <circle cx="152" cy="104" r="23" fill="#FDEBD0" opacity="0.2" />
+                      <circle cx="152" cy="104" r="23" stroke="#221A1A" stroke-width="4.5" fill="none" />
+                      <path d="M111 100C114 96 126 96 129 100" stroke="#221A1A" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                      <path d="M65 104L52 98" stroke="#221A1A" stroke-width="4" stroke-linecap="round" />
+                      <path d="M175 104L188 98" stroke="#221A1A" stroke-width="4" stroke-linecap="round" />
+                      <path d="M76 106C82 98 94 98 100 106" stroke="#221A1A" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                      <path d="M140 106C146 98 158 98 164 106" stroke="#221A1A" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                    </g>
+
+                    <g class="owl-cap">
+                      <path d="M80 46C80 46 95 60 120 60C145 60 160 46 160 46" fill="#631717" stroke="#3D0F0F" stroke-width="3.5" />
+                      <polygon points="120,12 196,36 120,58 44,36" fill="#8B2626" stroke="#3D0F0F" stroke-width="4" stroke-linejoin="round" />
+                      <polygon points="120,16 186,36 120,52 54,36" fill="#A52A2A" />
+                      <circle cx="120" cy="36" r="4" fill="#3D0F0F" />
+                      <path d="M120 36L176 50L182 66" stroke="#3D0F0F" stroke-width="3" fill="none" />
+                      <polygon points="178,66 186,66 182,78" fill="#3D0F0F" />
+                    </g>
+                  </g>
+                </svg>
+              </div>
+
+              <!-- Center Form Box -->
+              <div class="login-form-wrapper">
+                <h1 class="login-title" id="form-mode-title">Sign in</h1>
+                <p class="login-subtitle" id="form-mode-subtitle">
+                  Don't have an account yet? <button type="button" class="login-link-btn" id="toggle-auth-mode-btn">Sign up here</button>
+                </p>
+
+                <!-- Existing User Alert Banner -->
+                <div id="user-exists-alert" class="auth-alert alert-warning hidden" aria-live="polite">
+                  <div class="alert-icon">⚠️</div>
+                  <div class="alert-text-group">
+                    <span class="alert-title">Notice</span>
+                    <span class="alert-desc" id="alert-desc-text"></span>
+                  </div>
+                  <button type="button" class="btn btn-xs btn-alert-action hidden" id="alert-switch-signin-btn">Sign in →</button>
+                </div>
+
+                <form id="login-form" class="login-form" novalidate>
+                  <!-- Sign Up Only: Username Field -->
+                  <div class="form-group signup-field hidden">
+                    <label for="signup-username" class="form-label">Username</label>
+                    <input type="text" id="signup-username" class="form-input" placeholder="Choose a username" />
+                  </div>
+
+                  <!-- Email Address -->
+                  <div class="form-group">
+                    <label for="login-email" class="form-label">Email address</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="Enter your email address" required value="" />
+                  </div>
+
+                  <!-- Password Field -->
+                  <div class="form-group">
+                    <div class="form-label-row">
+                      <label for="login-password" class="form-label" id="password-label">Password</label>
+                      <a href="/forgot-password" class="login-link text-sm" id="forgot-password-link">Forgot password?</a>
+                    </div>
+                    <div class="input-password-wrapper">
+                      <input type="password" id="login-password" class="form-input" placeholder="Enter password (or leave blank for email link)" value="" />
+                      <button type="button" class="btn-toggle-password" aria-label="Toggle password visibility" id="toggle-password-btn">
+                        <svg class="eye-icon eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg class="eye-icon eye-closed hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Sign Up Only: Confirm Password Field -->
+                  <div class="form-group signup-field hidden">
+                    <label for="signup-confirm-password" class="form-label">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" class="form-input" placeholder="Confirm your password" />
+                  </div>
+
+                  <button type="submit" class="btn btn-login-submit" id="btn-login-submit">Sign in</button>
+                  <button type="button" class="btn btn-secondary" id="btn-send-verification-link" style="margin-top: 0.65rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 700;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    <span>Send Verification Link to Email</span>
+                  </button>
+                </form>
+
+                <div class="login-divider">
+                  <span>Or continue with</span>
+                </div>
+
+                <button type="button" class="btn btn-google-sso" id="google-sso-btn">
+                  <svg class="google-icon" width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  </svg>
+                  <span id="google-btn-text">Sign in with Google</span>
+                </button>
+
+                <p class="login-terms-notice">
+                  By signing in or creating an account, you are agreeing to our <a href="#">Terms & Conditions</a> and our <a href="#">Privacy Policy</a>.
+                </p>
+              </div>
+            </div>
+
+            <!-- RIGHT PANEL — EVENTLY (ORANGE / DARK-YELLOW BACKGROUND) -->
+            <div class="login-panel-right">
+              <div class="login-decor-grid"></div>
+              <div class="login-decor-circle circle-top"></div>
+              <div class="login-decor-circle circle-bottom"></div>
+
+              <div class="right-panel-content">
+                <h2 class="welcome-heading">Welcome to Evently</h2>
+
+                <div class="feature-list">
+                  <!-- Feature 1: Calendar Icon -->
+                  <div class="feature-item">
+                    <div class="feature-square-icon">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <circle cx="8" cy="14" r="1" fill="#EA580C"></circle>
+                        <circle cx="12" cy="14" r="1" fill="#EA580C"></circle>
+                        <circle cx="16" cy="14" r="1" fill="#EA580C"></circle>
+                        <circle cx="8" cy="18" r="1" fill="#EA580C"></circle>
+                        <circle cx="12" cy="18" r="1" fill="#EA580C"></circle>
+                      </svg>
+                    </div>
+                    <div class="feature-item-text">
+                      <h3 class="feature-item-title">All Your College Events</h3>
+                      <p class="feature-item-desc">Discover upcoming events, from workshops to cultural fests, all in one place.</p>
+                    </div>
+                  </div>
+
+                  <!-- Feature 2: Document / Event Icon -->
+                  <div class="feature-item">
+                    <div class="feature-square-icon">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <line x1="10" y1="9" x2="8" y2="9"></line>
+                      </svg>
+                    </div>
+                    <div class="feature-item-text">
+                      <h3 class="feature-item-title">Stay Organized</h3>
+                      <p class="feature-item-desc">Keep track of event details, dates, and venues with an easy-to-use calendar.</p>
+                    </div>
+                  </div>
+
+                  <!-- Feature 3: People / Group Icon -->
+                  <div class="feature-item">
+                    <div class="feature-square-icon">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      </svg>
+                    </div>
+                    <div class="feature-item-text">
+                      <h3 class="feature-item-title">Get Involved</h3>
+                      <p class="feature-item-desc">Register for events, manage your participations, and make the most of your college experience.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- ===================================================================
+           VIEW 2.5: PROFILE COMPLETION PAGE (SPLIT SCREEN)
+           =================================================================== -->
+      <div id="view-complete-profile" class="page-view">
+        <section class="login-split-page profile-split-page">
+          <div class="login-split-container profile-split-container">
+            
+            <!-- LEFT PANEL — COMPLETE PROFILE FORM -->
+            <div class="login-panel-left profile-panel-left">
+              <!-- Top Left Brand Header -->
+              <div class="login-brand-header">
+                <a href="/" class="brand-logo-link route-link" aria-label="Evently Home">
+                  <div class="brand-owl-mark">
+                    <svg viewBox="0 0 40 40" width="30" height="30" fill="none">
+                      <rect width="40" height="40" rx="8" fill="url(#logo-grad-profile-view)" />
+                      <path d="M12 14C12 11.8 14.5 10 18 10C21.5 10 24 11.8 24 14V22C24 25.3 21.3 28 18 28C14.7 28 12 25.3 12 22V14Z" fill="#FFFFFF"/>
+                      <circle cx="16" cy="16" r="3.5" fill="#1E293B"/>
+                      <circle cx="24" cy="16" r="3.5" fill="#1E293B"/>
+                      <path d="M20 18L18.5 21H21.5L20 18Z" fill="#F59E0B"/>
+                      <path d="M11 11L20 7L29 11L20 15L11 11Z" fill="#0F172A"/>
+                      <defs>
+                        <linearGradient id="logo-grad-profile-view" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#F59E0B"/>
+                          <stop offset="1" stop-color="#D97706"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                  <span class="brand-name font-bold text-xl">Evently</span>
+                </a>
+              </div>
+
+              <!-- Owl Mascot Peeking -->
+              <div class="login-owl-peeking">
+                <svg class="login-owl-svg" viewBox="0 0 240 240" width="180" height="180" fill="none">
+                  <g class="owl-character-group">
+                    <path d="M54 145C44 160 38 190 56 212C68 208 78 190 76 172C74 155 64 148 54 145Z" fill="#6B1D1D" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                    <path d="M120 48C70 48 45 80 45 138C45 195 72 222 120 222C168 222 195 195 195 138C195 80 170 48 120 48Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="4" stroke-linejoin="round" />
+                    <path d="M120 120C90 120 72 140 72 178C72 206 92 218 120 218C148 218 168 206 168 178C168 140 150 120 120 120Z" fill="#FDEBD0" stroke="#3D0F0F" stroke-width="3" />
+                    <path d="M102 152C108 158 114 158 120 152" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                    <path d="M122 152C128 158 134 158 140 152" stroke="#E07A28" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                    <path d="M72 65C52 45 42 50 48 72C58 75 66 72 72 65Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                    <path d="M168 65C188 45 198 50 192 72C182 75 174 72 168 65Z" fill="#E07A28" stroke="#3D0F0F" stroke-width="3.5" stroke-linejoin="round" />
+                    <path d="M72 82C72 82 85 70 120 70C155 70 168 82 168 82C178 100 172 128 152 135C132 142 120 132 120 132C120 132 108 142 88 135C68 128 62 100 72 82Z" fill="#F5CBA7" stroke="#3D0F0F" stroke-width="3" />
+                    <polygon points="120,105 110,128 130,128" fill="#F39C12" stroke="#3D0F0F" stroke-width="3" stroke-linejoin="round" />
+                    <g class="owl-glasses">
+                      <circle cx="88" cy="104" r="23" fill="#FDEBD0" opacity="0.2" />
+                      <circle cx="88" cy="104" r="23" stroke="#221A1A" stroke-width="4.5" fill="none" />
+                      <circle cx="152" cy="104" r="23" fill="#FDEBD0" opacity="0.2" />
+                      <circle cx="152" cy="104" r="23" stroke="#221A1A" stroke-width="4.5" fill="none" />
+                      <path d="M111 100C114 96 126 96 129 100" stroke="#221A1A" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                      <path d="M65 104L52 98" stroke="#221A1A" stroke-width="4" stroke-linecap="round" />
+                      <path d="M175 104L188 98" stroke="#221A1A" stroke-width="4" stroke-linecap="round" />
+                    </g>
+                    <g class="owl-cap">
+                      <path d="M80 46C80 46 95 60 120 60C145 60 160 46 160 46" fill="#631717" stroke="#3D0F0F" stroke-width="3.5" />
+                      <polygon points="120,12 196,36 120,58 44,36" fill="#8B2626" stroke="#3D0F0F" stroke-width="4" stroke-linejoin="round" />
+                      <polygon points="120,16 186,36 120,52 54,36" fill="#A52A2A" />
+                      <circle cx="120" cy="36" r="4" fill="#3D0F0F" />
+                      <path d="M120 36L176 50L182 66" stroke="#3D0F0F" stroke-width="3" fill="none" />
+                      <polygon points="178,66 186,66 182,78" fill="#3D0F0F" />
+                    </g>
+                  </g>
+                </svg>
+              </div>
+
+              <!-- Form Wrapper -->
+              <div class="login-form-wrapper profile-form-wrapper">
+                <h1 class="login-title">Complete Your Profile</h1>
+                <p class="login-subtitle">
+                  Help us customize your campus event recommendations · <button type="button" class="login-link-btn logout-btn-trigger" style="display:inline;background:none;border:none;color:#ea580c;font-weight:700;cursor:pointer;text-decoration:underline;">Sign out</button>
+                </p>
+
+                <form id="profile-completion-form" class="login-form profile-form" novalidate>
+                  <!-- 1. Degree * -->
+                  <div class="form-group">
+                    <label for="profile-degree" class="form-label">Degree <span class="text-req">*</span></label>
+                    <div class="select-wrapper">
+                      <select id="profile-degree" class="form-input form-select" required>
+                        <option value="" disabled selected>Select your degree</option>
+                        <option value="B.E.">B.E. (Bachelor of Engineering)</option>
+                        <option value="B.Tech">B.Tech (Bachelor of Technology)</option>
+                        <option value="M.E.">M.E. (Master of Engineering)</option>
+                        <option value="M.Tech">M.Tech (Master of Technology)</option>
+                        <option value="B.Sc">B.Sc (Bachelor of Science)</option>
+                        <option value="M.Sc">M.Sc (Master of Science)</option>
+                        <option value="MCA">MCA (Master of Computer Applications)</option>
+                        <option value="MBA">MBA (Master of Business Administration)</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <span class="select-arrow">▼</span>
+                    </div>
+                  </div>
+
+                  <!-- 2. School / College / University * -->
+                  <div class="form-group">
+                    <label for="profile-college" class="form-label">School / College / University <span class="text-req">*</span></label>
+                    <div class="input-search-wrapper">
+                      <svg class="search-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                      <input type="text" id="profile-college" class="form-input input-with-icon" placeholder="Search for your college (e.g. RVCE, BMSCE, MSRIT, PES)" required list="college-suggestions-list" autocomplete="off" />
+                      <datalist id="college-suggestions-list">
+                        <!-- Bangalore Top Engineering Colleges -->
+                        <option value="Bangalore Institute of Technology (BIT), VV Puram, Bangalore"></option>
+                        <option value="RV College of Engineering (RVCE), Bangalore"></option>
+                        <option value="BMS College of Engineering (BMSCE), Bangalore"></option>
+                        <option value="MS Ramaiah Institute of Technology (MSRIT), Bangalore"></option>
+                        <option value="PES University (PESU - Ring Road / Electronic City), Bangalore"></option>
+                        <option value="International Institute of Information Technology (IIIT Bangalore)"></option>
+                        <option value="Indian Institute of Science (IISc), Bangalore"></option>
+                        <option value="Dayananda Sagar College of Engineering (DSCE), Bangalore"></option>
+                        <option value="Sir M. Visvesvaraya Institute of Technology (Sir MVIT), Bangalore"></option>
+                        <option value="BMS Institute of Technology and Management (BMSIT), Bangalore"></option>
+                        <option value="R.N.S. Institute of Technology (RNSIT), Bangalore"></option>
+                        <option value="New Horizon College of Engineering (NHCE), Bangalore"></option>
+                        <option value="Nitte Meenakshi Institute of Technology (NMIT), Bangalore"></option>
+                        <option value="CMR Institute of Technology (CMRIT), Bangalore"></option>
+                        <option value="REVA University, Bangalore"></option>
+                        <option value="Alliance University - College of Engineering, Bangalore"></option>
+                        <option value="Christ University Faculty of Engineering, Bangalore"></option>
+                        <option value="SJB Institute of Technology (SJBIT), Bangalore"></option>
+                        <option value="Oxford College of Engineering, Bangalore"></option>
+                        <option value="Dayananda Sagar University (DSU), Bangalore"></option>
+                        <option value="Acharya Institute of Technology (AIT), Bangalore"></option>
+                        <option value="MVJ College of Engineering (MVJCE), Bangalore"></option>
+                        <option value="Jain University - Faculty of Engineering (FET), Bangalore"></option>
+                        <option value="KLE Technological University (Bangalore Campus)"></option>
+                        <option value="Visvesvaraya Technological University (VTU), Belagavi/Bangalore"></option>
+                        <!-- Premier National Universities -->
+                        <option value="National Institute of Technology (NIT)"></option>
+                        <option value="Indian Institute of Technology (IIT)"></option>
+                        <option value="Birla Institute of Technology and Science (BITS)"></option>
+                        <option value="Delhi Technological University (DTU)"></option>
+                        <option value="Anna University, Chennai"></option>
+                        <option value="Manipal Institute of Technology (MIT), Manipal"></option>
+                      </datalist>
+                    </div>
+                    <!-- Quick Select Badges for Top Bangalore Colleges -->
+                    <div class="college-quick-tags" id="college-quick-tags">
+                      <span class="quick-tag-label">Popular in Bangalore:</span>
+                      <button type="button" class="college-quick-btn" data-college="Bangalore Institute of Technology (BIT), VV Puram, Bangalore">BIT Bangalore</button>
+                      <button type="button" class="college-quick-btn" data-college="RV College of Engineering (RVCE), Bangalore">RVCE</button>
+                      <button type="button" class="college-quick-btn" data-college="BMS College of Engineering (BMSCE), Bangalore">BMSCE</button>
+                      <button type="button" class="college-quick-btn" data-college="MS Ramaiah Institute of Technology (MSRIT), Bangalore">MSRIT</button>
+                      <button type="button" class="college-quick-btn" data-college="PES University (PESU), Bangalore">PESU</button>
+                      <button type="button" class="college-quick-btn" data-college="Dayananda Sagar College of Engineering (DSCE), Bangalore">DSCE</button>
+                      <button type="button" class="college-quick-btn" data-college="IIIT Bangalore">IIITB</button>
+                    </div>
+                  </div>
+
+                  <!-- 3. Branch * -->
+                  <div class="form-group">
+                    <label for="profile-branch" class="form-label">Branch <span class="text-req">*</span></label>
+                    <div class="select-wrapper">
+                      <select id="profile-branch" class="form-input form-select" required>
+                        <option value="" disabled selected>Select your branch</option>
+                        <option value="Computer Science">Computer Science & Engineering</option>
+                        <option value="Information Science">Information Science & Engineering</option>
+                        <option value="Electronics & Communication">Electronics & Communication Engineering</option>
+                        <option value="Electrical & Electronics">Electrical & Electronics Engineering</option>
+                        <option value="Mechanical">Mechanical Engineering</option>
+                        <option value="Civil">Civil Engineering</option>
+                        <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning</option>
+                        <option value="Data Science">Data Science & Analytics</option>
+                        <option value="Other">Other Branch</option>
+                      </select>
+                      <span class="select-arrow">▼</span>
+                    </div>
+                  </div>
+
+                  <!-- 4. Year of Graduation * -->
+                  <div class="form-group">
+                    <label for="profile-grad-year" class="form-label">Year of Graduation <span class="text-req">*</span></label>
+                    <div class="select-wrapper">
+                      <select id="profile-grad-year" class="form-input form-select" required>
+                        <option value="" disabled selected>Select graduation year</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026 (Current Academic Year)</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                      </select>
+                      <span class="select-arrow">▼</span>
+                    </div>
+                  </div>
+
+                  <!-- 5. Country * -->
+                  <div class="form-group">
+                    <label for="profile-country" class="form-label">Country <span class="text-req">*</span></label>
+                    <div class="select-wrapper">
+                      <select id="profile-country" class="form-input form-select" required>
+                        <option value="India" selected>India 🇮🇳</option>
+                        <option value="United States">United States 🇺🇸</option>
+                        <option value="United Kingdom">United Kingdom 🇬🇧</option>
+                        <option value="Canada">Canada 🇨🇦</option>
+                        <option value="Australia">Australia 🇦🇺</option>
+                        <option value="Germany">Germany 🇩🇪</option>
+                        <option value="Other">Other Country</option>
+                      </select>
+                      <span class="select-arrow">▼</span>
+                    </div>
+                  </div>
+
+                  <!-- 6. Events You're Interested In * (MULTI-SELECT) -->
+                  <div class="form-group">
+                    <div class="form-label-row">
+                      <label class="form-label">Events You're Interested In <span class="text-req">*</span></label>
+                      <span class="interests-count-badge" id="interests-count-badge">0 selected</span>
+                    </div>
+                    <p class="form-help-text">Click to select all event types you want to see on your calendar:</p>
+                    
+                    <div class="interests-chip-grid" id="interests-chip-grid">
+                      <button type="button" class="interest-chip" data-value="Technical Workshops">
+                        <span class="chip-icon">🛠️</span>
+                        <span>Technical Workshops</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Hackathons">
+                        <span class="chip-icon">💻</span>
+                        <span>Hackathons</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Coding Competitions">
+                        <span class="chip-icon">🚀</span>
+                        <span>Coding Competitions</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Cultural Events">
+                        <span class="chip-icon">🎭</span>
+                        <span>Cultural Events</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Sports Events">
+                        <span class="chip-icon">⚽</span>
+                        <span>Sports Events</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Seminars & Guest Lectures">
+                        <span class="chip-icon">🎤</span>
+                        <span>Seminars & Guest Lectures</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Project Exhibitions">
+                        <span class="chip-icon">📊</span>
+                        <span>Project Exhibitions</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Career & Placement Events">
+                        <span class="chip-icon">💼</span>
+                        <span>Career & Placement Events</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Clubs & Student Activities">
+                        <span class="chip-icon">🧩</span>
+                        <span>Clubs & Student Activities</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                      <button type="button" class="interest-chip" data-value="Entrepreneurship Events">
+                        <span class="chip-icon">💡</span>
+                        <span>Entrepreneurship Events</span>
+                        <span class="chip-check">✓</span>
+                      </button>
+                    </div>
+                    <div id="interests-error" class="form-error-msg hidden">Please select at least one event interest to continue.</div>
+                  </div>
+
+                  <button type="submit" class="btn btn-login-submit" id="btn-profile-submit">Continue →</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- RIGHT PANEL — ONE STOP SOLUTION (PREVIEW OF CALENDAR/EVENT SYSTEM) -->
+            <div class="login-panel-right profile-panel-right">
+              <div class="login-decor-grid"></div>
+              <div class="login-decor-circle circle-top"></div>
+              <div class="login-decor-circle circle-bottom"></div>
+
+              <div class="right-panel-content">
+                <h2 class="welcome-heading">One Stop Solution</h2>
+                <p class="right-panel-subtitle">Discover and keep track of all your college events in one place</p>
+
+                <!-- Visual Preview Widget Cards -->
+                <div class="right-panel-visual-preview">
+                  <!-- Mini Calendar Header Badge -->
+                  <div class="preview-mini-header">
+                    <span class="preview-badge">EVENTLY CAMPUS PREVIEW</span>
+                    <span class="preview-live-dot">● SYNCED</span>
+                  </div>
+
+                  <!-- Event Cards Preview -->
+                  <div class="preview-event-cards">
+                    <div class="preview-card-item card-active">
+                      <div class="preview-card-date">
+                        <span class="p-month">SEP</span>
+                        <span class="p-day">24</span>
+                      </div>
+                      <div class="preview-card-body">
+                        <div class="preview-tag tag-tech">Hackathons</div>
+                        <h4 class="preview-event-name">CodeStorm 2026: AI & Web Hackathon</h4>
+                        <span class="preview-event-location">📍 Main Engineering Auditorium</span>
+                      </div>
+                    </div>
+
+                    <div class="preview-card-item">
+                      <div class="preview-card-date">
+                        <span class="p-month">SEP</span>
+                        <span class="p-day">19</span>
+                      </div>
+                      <div class="preview-card-body">
+                        <div class="preview-tag tag-cultural">Cultural Events</div>
+                        <h4 class="preview-event-name">Sunburn Campus Cultural Beats</h4>
+                        <span class="preview-event-location">📍 Open Amphitheatre</span>
+                      </div>
+                    </div>
+
+                    <div class="preview-card-item">
+                      <div class="preview-card-date">
+                        <span class="p-month">SEP</span>
+                        <span class="p-day">28</span>
+                      </div>
+                      <div class="preview-card-body">
+                        <div class="preview-tag tag-workshop">Technical Workshops</div>
+                        <h4 class="preview-event-name">Robotics & Drone Racing League</h4>
+                        <span class="preview-event-location">📍 Innovation Hub Arena</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- ===================================================================
+           VIEW 3: AUTHENTICATED CALENDAR VIEW (PROTECTED / HOME AFTER LOGIN)
+           =================================================================== -->
+      <!-- ===================================================================
+           VIEW 3: MAIN EVENT CALENDAR DASHBOARD (/calendar)
+           =================================================================== -->
+      <div id="view-calendar" class="page-view">
+        <div class="dash-layout-new">
+          
+          <!-- 1. NARROW FIXED ICON SIDEBAR (52px wide) -->
+          <aside class="icon-sidebar" id="icon-sidebar">
+            <!-- Top Brand Logo Icon -->
+            <a href="/" class="icon-nav-brand route-link" data-tooltip="Evently Home">
+              <svg viewBox="0 0 40 40" width="30" height="30" fill="none">
+                <rect width="40" height="40" rx="8" fill="url(#logo-grad-sidebar)" />
+                <path d="M12 14C12 11.8 14.5 10 18 10C21.5 10 24 11.8 24 14V22C24 25.3 21.3 28 18 28C14.7 28 12 25.3 12 22V14Z" fill="#FFFFFF"/>
+                <circle cx="16" cy="16" r="3.5" fill="#1E293B"/>
+                <circle cx="24" cy="16" r="3.5" fill="#1E293B"/>
+                <path d="M20 18L18.5 21H21.5L20 18Z" fill="#F59E0B"/>
+                <path d="M11 11L20 7L29 11L20 15L11 11Z" fill="#0F172A"/>
+                <defs>
+                  <linearGradient id="logo-grad-sidebar" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#F59E0B"/>
+                    <stop offset="1" stop-color="#D97706"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </a>
+
+            <!-- Navigation Icons Stacked Vertically -->
+            <nav class="icon-nav-menu">
+              <!-- Home -->
+              <a href="/" class="icon-nav-item route-link" data-tooltip="Home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              </a>
+
+              <!-- Dashboard / Overview -->
+              <a href="/calendar" class="icon-nav-item route-link" data-tooltip="Dashboard">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              </a>
+
+              <!-- Events -->
+              <button type="button" class="icon-nav-item" id="btn-icon-nav-events" data-tooltip="Events">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+              </button>
+
+              <!-- Event Tracking -->
+              <button type="button" class="icon-nav-item" id="btn-icon-nav-tracking" data-tooltip="Event Tracking">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              </button>
+
+              <!-- Calendar (Active with orange/dark-yellow background accent) -->
+              <a href="/calendar" class="icon-nav-item active route-link" data-tooltip="Calendar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </a>
+
+              <!-- My Registrations (Ticket) -->
+              <button type="button" class="icon-nav-item" id="btn-open-my-registrations" data-tooltip="My Registrations">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path></svg>
+                <span class="icon-badge-dot" id="my-registrations-badge"></span>
+              </button>
+
+              <!-- Achievements / Activities -->
+              <button type="button" class="icon-nav-item" id="btn-icon-nav-achieve" data-tooltip="Achievements & Activities">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+              </button>
+
+              <!-- Help -->
+              <button type="button" class="icon-nav-item" id="btn-icon-nav-help" data-tooltip="Help & Support">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              </button>
+            </nav>
+
+            <!-- Bottom Nav Stack (Profile & Logout) -->
+            <div class="icon-nav-bottom">
+              <!-- Theme Toggle -->
+              <button type="button" class="icon-nav-item theme-toggle-btn" id="dash-theme-btn" data-tooltip="Toggle Theme">
+                <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
+                <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              </button>
+
+              <!-- Profile -->
+              <button type="button" class="icon-nav-item" id="btn-open-profile" data-tooltip="Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </button>
+
+              <!-- Logout -->
+              <button type="button" class="icon-nav-item logout-btn-trigger text-danger" data-tooltip="Logout">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              </button>
+            </div>
+          </aside>
+
+          <!-- 2. MIDDLE EVENT LIST PANEL -->
+          <aside class="event-list-panel" id="event-list-panel">
+            <!-- Header -->
+            <div class="list-panel-header">
+              <div class="list-panel-title-group">
+                <h2 class="list-panel-heading">College Events</h2>
+                <p class="list-panel-subtitle">Explore upcoming college events and never miss one</p>
+              </div>
+
+              <div class="list-panel-college-tag" id="user-display-college">
+                📍 Bangalore Institute of Technology
+              </div>
+
+              <!-- Search & Filter Bar -->
+              <div class="list-panel-search-bar">
+                <div class="search-input-wrapper">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <input type="text" id="dash-search-input" placeholder="Search events..." />
+                </div>
+
+                <div class="filter-dropdown-wrapper">
+                  <select id="cal-category-filter" class="list-filter-select">
+                    <option value="all">All Categories ▾</option>
+                    <option value="Technical Workshops">🛠️ Technical</option>
+                    <option value="Coding Competitions">💻 Coding Contests</option>
+                    <option value="Hackathons">⚡ Hackathons</option>
+                    <option value="Seminars & Guest Lectures">🎤 Academic & Seminars</option>
+                    <option value="Cultural Events">🎭 Cultural</option>
+                    <option value="Sports Events">⚽ Sports</option>
+                    <option value="Career & Placement Events">💼 Career & Placement</option>
+                    <option value="Clubs & Student Activities">🧩 College Activities</option>
+                    <option value="Festivals & Special Days">🎉 Festivals</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scrollable Event Feed Grouped By Date -->
+            <div class="event-list-scroll" id="event-list-feed">
+              <!-- Rendered dynamically by JS -->
+            </div>
+          </aside>
+
+          <!-- 3. LARGE CALENDAR MAIN PANEL -->
+          <main class="calendar-main-panel">
+            <!-- CALENDAR TOP BAR -->
+            <header class="calendar-top-bar">
+              <div class="cal-top-left">
+                <h1 class="cal-month-heading" id="cal-current-month-title">September 2026</h1>
+              </div>
+
+              <div class="cal-top-right">
+                <!-- Month Controls -->
+                <div class="month-nav-group">
+                  <button type="button" class="btn btn-sm btn-outline" id="cal-today-btn">Today</button>
+                  <div class="month-nav-arrows">
+                    <button type="button" class="cal-nav-arrow" id="cal-prev-month" title="Previous Month">‹</button>
+                    <button type="button" class="cal-nav-arrow" id="cal-next-month" title="Next Month">›</button>
+                  </div>
+                </div>
+
+                <!-- View Switcher -->
+                <div class="view-switch-group">
+                  <button type="button" class="view-switch-btn active" data-view="month">Month</button>
+                  <button type="button" class="view-switch-btn" data-view="week">Week</button>
+                  <button type="button" class="view-switch-btn" data-view="day">Day</button>
+                </div>
+              </div>
+            </header>
+
+            <!-- CALENDAR GRID CARD -->
+            <div class="calendar-grid-card">
+              <!-- Weekdays Header Row -->
+              <div class="cal-weekdays-row">
+                <div class="weekday-cell">MON</div>
+                <div class="weekday-cell">TUE</div>
+                <div class="weekday-cell">WED</div>
+                <div class="weekday-cell">THU</div>
+                <div class="weekday-cell">FRI</div>
+                <div class="weekday-cell weekend">SAT</div>
+                <div class="weekday-cell weekend">SUN</div>
+              </div>
+
+              <!-- Days Grid (Rendered dynamically) -->
+              <div class="cal-days-grid" id="cal-main-days-grid"></div>
+            </div>
+          </main>
+
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           VIEW 4: AUTHENTICATED EVENTS VIEW
+           =================================================================== -->
+      <div id="view-events" class="page-view">
+        <section class="section events-app-page" style="padding: 2rem 0 4rem; min-height: calc(100vh - 72px); background: var(--bg-secondary);">
+          <div class="container">
+            
+            <!-- Header with Month Selector and Controls -->
+            <div class="events-page-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.25rem; margin-bottom: 1.75rem;">
+              <div>
+                <span class="section-tag">CAMPUS SCHEDULE</span>
+                <h1 class="section-title" id="events-month-heading" style="margin: 0.25rem 0 0.4rem; font-size: 2rem; font-weight: 800; color: var(--text-dark);">Events for September 2026</h1>
+                <p class="section-description" id="events-count-subtext" style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Showing all scheduled college competitions, workshops, and activities.</p>
+              </div>
+
+              <!-- Month Navigation Controls -->
+              <div class="events-month-nav" style="display: flex; align-items: center; gap: 0.6rem;">
+                <button type="button" class="btn btn-sm btn-outline" id="events-prev-month-btn">‹ Previous</button>
+                <button type="button" class="btn btn-sm btn-primary" id="events-current-month-btn">September 2026</button>
+                <button type="button" class="btn btn-sm btn-outline" id="events-next-month-btn">Next ›</button>
+              </div>
+            </div>
+
+            <!-- Filter and Search Bar -->
+            <div class="events-filter-bar" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 2rem; background: var(--bg-card); padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <label for="events-category-filter" style="font-size: 0.88rem; font-weight: 600; color: var(--text-dark);">Filter by:</label>
+                <select id="events-category-filter" class="form-control" style="padding: 0.45rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.88rem; background: var(--bg-primary); color: var(--text-dark);">
+                  <option value="all">All Categories</option>
+                  <option value="Coding Competitions">Coding Competitions</option>
+                  <option value="Technical & Hackathons">Technical & Hackathons</option>
+                  <option value="Technical Workshops">Technical Workshops</option>
+                  <option value="Cultural & Arts">Cultural & Arts</option>
+                  <option value="Sports & Fitness">Sports & Fitness</option>
+                  <option value="Guest Lectures & Seminars">Guest Lectures & Seminars</option>
+                </select>
+              </div>
+
+              <div style="flex: 1; max-width: 380px;">
+                <input type="text" id="events-search-input" placeholder="Search events of this month..." class="form-control" style="width: 100%; padding: 0.45rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.88rem; background: var(--bg-primary); color: var(--text-dark);" />
+              </div>
+            </div>
+
+            <!-- Events List / Grid -->
+            <div id="events-month-list-grid" class="events-month-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+              <!-- Dynamically populated events of that month -->
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- ===================================================================
+           VIEW 4.5: DEDICATED EVENT & CONTEST DETAILS VIEW
+           =================================================================== -->
+      <div id="view-event-detail" class="page-view">
+        <div class="event-detail-page-wrapper">
+          <div class="container event-detail-container">
+            
+            <!-- Breadcrumbs / Back button -->
+            <div class="event-detail-back-nav">
+              <a href="/calendar" class="btn-back-link route-link">
+                <span class="back-arrow">←</span> Back to Calendar
+              </a>
+              <span class="event-detail-id-tag" id="detail-event-id-tag">EVENT-ID</span>
+            </div>
+
+            <!-- Contest Header Banner -->
+            <div class="contest-header-banner">
+              <div class="contest-header-left">
+                <div class="contest-tag-row">
+                  <span class="event-cat-badge" id="detail-event-category">CODING COMPETITION</span>
+                  <span class="contest-status-pill" id="detail-event-status-pill">● Registration Open</span>
+                </div>
+                <h1 class="contest-main-title" id="detail-event-title">AtCoder Regular Contest++ 228</h1>
+                <div class="contest-quick-meta">
+                  <span class="meta-pill"><strong>Can Participate:</strong> <span id="detail-can-participate">All</span></span>
+                  <span class="meta-pill"><strong>Rated Range:</strong> <span id="detail-rated-range">1600 - 2999</span></span>
+                  <span class="meta-pill"><strong>Penalty:</strong> <span id="detail-penalty">5 minutes</span></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Two-Column Layout -->
+            <div class="event-detail-grid">
+              
+              <!-- Left Column: Contest Info, Tasks / Points, Rules, Links -->
+              <div class="event-detail-left-col">
+                
+                <!-- 1. Contest Information -->
+                <div class="detail-card">
+                  <h3 class="detail-card-title">Contest Information</h3>
+                  <div class="detail-info-table">
+                    <div class="detail-info-row">
+                      <span class="info-label">Duration</span>
+                      <span class="info-value" id="detail-duration">150 minutes</span>
+                    </div>
+                    <div class="detail-info-row">
+                      <span class="info-label">Writer / Organizer</span>
+                      <span class="info-value" id="detail-writer"><a href="#" id="detail-writer-link" target="_blank" rel="noopener">PCTprobability</a></span>
+                    </div>
+                    <div class="detail-info-row">
+                      <span class="info-label">Rated Range</span>
+                      <span class="info-value" id="detail-rated-range-row">1600 - 2999</span>
+                    </div>
+                    <div class="detail-info-row">
+                      <span class="info-label">Platform / Venue</span>
+                      <span class="info-value" id="detail-venue">Online / Virtual Arena</span>
+                    </div>
+                    <div class="detail-info-row">
+                      <span class="info-label">About Event</span>
+                      <span class="info-value" id="detail-description">Official competitive programming contest.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Point Values & Task Breakdown Table -->
+                <div class="detail-card">
+                  <h3 class="detail-card-title">Point Values</h3>
+                  <div class="points-table-wrapper">
+                    <table class="points-table">
+                      <thead>
+                        <tr>
+                          <th>Task</th>
+                          <th>Score</th>
+                          <th>Topic Focus</th>
+                        </tr>
+                      </thead>
+                      <tbody id="detail-points-tbody">
+                        <tr><td>A</td><td>800</td><td>Greedy &amp; Implementation</td></tr>
+                        <tr><td>B</td><td>800</td><td>Math &amp; Number Theory</td></tr>
+                        <tr><td>C</td><td>900</td><td>Constructive Algorithms</td></tr>
+                        <tr><td>D</td><td>1000</td><td>Dynamic Programming &amp; Graphs</td></tr>
+                        <tr><td>E</td><td>1200</td><td>Data Structures &amp; Flow</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- 3. Contest Rules -->
+                <div class="detail-card">
+                  <h3 class="detail-card-title">Contest Rules</h3>
+                  <div class="contest-rules-body" id="detail-rules-body">
+                    <p>This contest is <strong>full-feedback</strong> (solutions are judged during the contest).</p>
+                    <p>When you solve a problem, you get a score assigned to it. Competitors are ranked first by total scores, then by penalties.</p>
+                    <p>The penalties are computed as <code>(the time you spend to get your current score) + (5 minutes) * (the number of incorrect attempts)</code>.</p>
+                    <p>Plagiarism, multiple accounts, or communication with other contestants during the contest round is strictly prohibited.</p>
+                  </div>
+                </div>
+
+                <!-- 4. Useful Links -->
+                <div class="detail-card">
+                  <h3 class="detail-card-title">Useful Links</h3>
+                  <div class="useful-links-list" id="detail-useful-links">
+                    <a href="https://atcoder.jp/" target="_blank" rel="noopener" class="useful-link-item">
+                      <span class="link-icon">🌐</span>
+                      <div class="link-text">
+                        <span class="link-title">Official Contest Platform</span>
+                        <span class="link-url">https://atcoder.jp/</span>
+                      </div>
+                      <span class="link-arrow">↗</span>
+                    </a>
+                    <a href="https://atcoder.jp/post/2" target="_blank" rel="noopener" class="useful-link-item">
+                      <span class="link-icon">📖</span>
+                      <div class="link-text">
+                        <span class="link-title">How to Participate Guidelines</span>
+                        <span class="link-url">https://atcoder.jp/post/2</span>
+                      </div>
+                      <span class="link-arrow">↗</span>
+                    </a>
+                    <a href="https://atcoder.jp/contests/practice" target="_blank" rel="noopener" class="useful-link-item">
+                      <span class="link-icon">💻</span>
+                      <div class="link-text">
+                        <span class="link-title">Practice Contest Arena</span>
+                        <span class="link-url">https://atcoder.jp/contests/practice</span>
+                      </div>
+                      <span class="link-arrow">↗</span>
+                    </a>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right Column: Registration & Schedule Action Card -->
+              <div class="event-detail-right-col">
+                <div class="sticky-action-card">
+                  <div class="action-card-header">
+                    <span class="schedule-pill">📅 SCHEDULE</span>
+                    <h4 class="action-date" id="detail-action-date">Saturday, Sep 19, 2026</h4>
+                    <p class="action-time" id="detail-action-time">⏰ 10:00 AM - 06:00 PM</p>
+                  </div>
+
+                  <div class="action-card-seats">
+                    <div class="seats-text-row">
+                      <span class="seats-label">Capacity &amp; Spots</span>
+                      <span class="seats-value" id="detail-seats-count">480 / 500 Available</span>
+                    </div>
+                    <div class="seat-progress-bar">
+                      <div class="seat-progress-fill" id="detail-seat-progress-fill" style="width: 80%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Register CTA Button -->
+                  <div class="action-btn-group">
+                    <button type="button" class="btn btn-primary btn-lg w-full" id="detail-btn-register">
+                      Register for Event →
+                    </button>
+                    <p class="action-card-notice" id="detail-register-notice">
+                      Instant digital pass generated upon registration.
+                    </p>
+                  </div>
+
+                  <!-- Digital Pass Preview (shown if registered) -->
+                  <div class="action-pass-confirmed hidden" id="detail-pass-preview">
+                    <div class="pass-badge">✓ REGISTERED PASS CONFIRMED</div>
+                    <div class="pass-qr-box">
+                      <svg width="80" height="80" viewBox="0 0 100 100">
+                        <rect width="100" height="100" fill="#ffffff" />
+                        <path d="M10 10h30v30h-30zM60 10h30v30h-30zM10 60h30v30h-30zM20 20h10v10h-10zM70 20h10v10h-10zM20 70h10v10h-10zM50 50h10v10h-10zM70 70h20v20h-20z" fill="#0f172a" />
+                      </svg>
+                      <span>Scan for Gate Entry</span>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm w-full text-danger" id="detail-btn-cancel-reg">
+                      Cancel My Registration
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           VIEW 5: ABOUT PAGE VIEW
+           =================================================================== -->
+      <div id="view-about" class="page-view">
+        <section class="section about-app-page">
+          <div class="container">
+            <div class="section-header">
+              <span class="section-tag">ABOUT EVENTLY</span>
+              <h2 class="section-title">Cloud Event System</h2>
+              <p class="section-description">Built for university students, club leads, and faculty admins.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer" id="main-footer">
+      <div class="container footer-container">
+        <div class="footer-brand">
+          <a href="/" class="brand-logo-link route-link">
+            <div class="brand-owl-mark">
+              <svg viewBox="0 0 40 40" width="28" height="28" fill="none">
+                <rect width="40" height="40" rx="8" fill="#F59E0B" />
+                <path d="M12 14C12 11.8 14.5 10 18 10C21.5 10 24 11.8 24 14V22C24 25.3 21.3 28 18 28C14.7 28 12 25.3 12 22V14Z" fill="#FFFFFF"/>
+                <circle cx="16" cy="16" r="3" fill="#1E293B"/>
+                <circle cx="24" cy="16" r="3" fill="#1E293B"/>
+              </svg>
+            </div>
+            <span class="brand-name">Evently</span>
+          </a>
+          <p class="footer-tagline">
+            The modern cloud-based event discovery & management platform for college campuses.
+          </p>
+        </div>
+
+        <div class="footer-links-group">
+          <div class="footer-col">
+            <span class="footer-col-title">Navigation</span>
+            <ul>
+              <li><a href="/" class="route-link">Home</a></li>
+              <li><a href="/events" class="route-link">Events</a></li>
+              <li><a href="/calendar" class="route-link">Calendar</a></li>
+              <li><a href="/about" class="route-link">About</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <span class="footer-col-title">Account</span>
+            <ul>
+              <li><a href="/login" class="route-link">Student Login</a></li>
+              <li><a href="/login" class="route-link">Club Admin Portal</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <span class="footer-col-title">Platform</span>
+            <ul>
+              <li><a href="/" class="route-link">Campus Cloud</a></li>
+              <li><a href="/" class="route-link">Security & SSO</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="container footer-bottom">
+        <p>&copy; 2026 Evently Campus System. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- EVENT DETAILS MODAL -->
+    <div id="event-details-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-event-details"></div>
+      <div class="dash-modal-card">
+        <button type="button" class="dash-modal-close" id="modal-close-event-details" aria-label="Close Modal">✕</button>
+        <div class="event-details-header">
+          <span class="event-cat-badge" id="modal-event-cat">HACKATHON</span>
+          <h2 class="event-details-title" id="modal-event-title">CodeStorm 2026: 24-Hour AI & Web Hackathon</h2>
+          <span class="event-organizer-pill" id="modal-event-org">🏢 Organized by CS & AI Student Club</span>
+        </div>
+
+        <div class="event-meta-grid">
+          <div class="meta-box">
+            <span class="meta-label">📅 Date</span>
+            <span class="meta-val" id="modal-event-date">Thursday, Sep 24, 2026</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">⏰ Time</span>
+            <span class="meta-val" id="modal-event-time">09:00 AM Onwards</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">📍 Venue</span>
+            <span class="meta-val" id="modal-event-venue">Main Engineering Auditorium</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">🪑 Seat Capacity</span>
+            <span class="meta-val" id="modal-event-seats">73 / 100 Seats Available</span>
+          </div>
+        </div>
+
+        <div class="seat-progress-bar-container">
+          <div class="seat-progress-fill" id="modal-seat-progress" style="width: 73%;"></div>
+        </div>
+
+        <div class="event-desc-box">
+          <h4>About Event</h4>
+          <p id="modal-event-desc">Join 200+ students across campus to build innovative AI applications and web prototypes in a 24-hour sprint. Mentors from top tech companies will be on site with food, swag, and ₹50,000 in prize pools!</p>
+        </div>
+
+        <div class="event-modal-actions">
+          <button type="button" class="btn btn-secondary" id="modal-btn-close">Close</button>
+          <button type="button" class="btn btn-primary btn-lg" id="modal-btn-register">Register for Event →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTRATION CONFIRMATION MODAL -->
+    <div id="registration-confirm-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-confirm"></div>
+      <div class="dash-modal-card confirm-modal-card">
+        <div class="confirm-icon">🎫</div>
+        <h3 class="confirm-title" id="confirm-modal-title">Confirm Registration?</h3>
+        <p class="confirm-desc" id="confirm-modal-desc">Are you sure you want to register for <strong>CodeStorm 2026</strong>? A digital entry pass with QR code will be added to your account.</p>
+
+        <div class="confirm-actions">
+          <button type="button" class="btn btn-secondary" id="confirm-btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="confirm-btn-submit">Confirm Registration</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY REGISTRATIONS MODAL -->
+    <div id="my-registrations-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-registrations"></div>
+      <div class="dash-modal-card registrations-modal-card">
+        <button type="button" class="dash-modal-close" id="modal-close-registrations" aria-label="Close Modal">✕</button>
+        <div class="registrations-header">
+          <h2>🎫 My Event Registrations</h2>
+          <p>Your confirmed campus event passes and tickets</p>
+        </div>
+        <div class="registrations-list" id="registrations-list-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- DATE EVENTS DRAWER / PANEL -->
+    <div id="date-events-drawer" class="date-drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div>
+          <h3 id="drawer-date-title">Events for Sep 24, 2026</h3>
+          <span id="drawer-date-count" class="drawer-count-tag">2 Events Scheduled</span>
+        </div>
+        <button type="button" class="dash-modal-close" id="drawer-close-btn">✕</button>
+      </div>
+      <div class="drawer-body" id="drawer-events-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgot-password-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-forgot"></div>
+      <div class="dash-modal-card forgot-modal-card">
+        <button type="button" class="dash-modal-close" id="modal-close-forgot" aria-label="Close Modal">✕</button>
+        
+        <div class="auth-modal-header">
+          <div class="auth-modal-icon-badge">🔐</div>
+          <div class="auth-modal-title-wrap">
+            <h3 class="auth-modal-title" id="forgot-step-title">Reset Your Password</h3>
+            <p class="auth-modal-sub" id="forgot-step-desc">Enter your registered email address to receive a 6-digit verification code.</p>
+          </div>
+        </div>
+
+        <div id="forgot-alert" class="auth-alert hidden" aria-live="polite"></div>
+
+        <!-- Step 1: Input Email -->
+        <div id="forgot-step-1" class="forgot-step-panel">
+          <div class="form-group">
+            <label for="forgot-email" class="form-label">Account Email Address</label>
+            <input type="email" id="forgot-email" class="form-input" placeholder="e.g. student@college.edu" />
+          </div>
+          <button type="button" class="btn btn-primary btn-block" id="btn-forgot-send-otp">
+            <span>Send Verification OTP</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+        </div>
+
+        <!-- Step 2: Input OTP -->
+        <div id="forgot-step-2" class="forgot-step-panel hidden">
+          <div class="form-group">
+            <label class="form-label">Enter 6-Digit Code</label>
+            <div class="otp-inputs-wrapper" id="forgot-otp-container">
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+            </div>
+            <div class="otp-helper-row">
+              <span class="text-xs text-muted">Expires in 10 minutes</span>
+              <button type="button" class="btn-link-xs" id="btn-forgot-resend-otp">Resend OTP</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" id="btn-forgot-verify-otp">
+            <span>Verify Code</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+        </div>
+
+        <!-- Step 3: New Password -->
+        <div id="forgot-step-3" class="forgot-step-panel hidden">
+          <div class="form-group">
+            <label for="forgot-new-password" class="form-label">New Password</label>
+            <input type="password" id="forgot-new-password" class="form-input" placeholder="At least 6 characters" />
+          </div>
+          <div class="form-group">
+            <label for="forgot-confirm-password" class="form-label">Confirm New Password</label>
+            <input type="password" id="forgot-confirm-password" class="form-input" placeholder="Re-enter new password" />
+          </div>
+          <button type="button" class="btn btn-primary btn-block" id="btn-forgot-save-password">
+            <span>Save New Password & Sign In</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOOGLE TWO-WAY SECURITY VERIFICATION MODAL -->
+    <div id="google-verify-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-google-verify"></div>
+      <div class="dash-modal-card google-verify-card">
+        <button type="button" class="dash-modal-close" id="modal-close-google-verify" aria-label="Cancel">✕</button>
+
+        <div class="auth-modal-header">
+          <div class="auth-modal-icon-badge google-shield-badge">
+            <svg class="google-icon" width="22" height="22" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+          </div>
+          <div class="auth-modal-title-wrap">
+            <h3 class="auth-modal-title">Two-Way Security Verification</h3>
+            <p class="auth-modal-sub">Confirm your identity using either Email OTP or your Account Password.</p>
+          </div>
+        </div>
+
+        <!-- Google User Identity Profile Card -->
+        <div class="google-user-pill-card">
+          <div class="google-user-avatar-wrap">
+            <img id="google-verify-avatar" src="" alt="Google User" class="google-avatar-img hidden" />
+            <div id="google-verify-avatar-fallback" class="google-avatar-initials">G</div>
+          </div>
+          <div class="google-user-meta">
+            <span class="google-user-name" id="google-verify-name">Google User</span>
+            <span class="google-user-email" id="google-verify-email">user@college.edu</span>
+          </div>
+          <span class="security-verified-tag">🛡️ Step 2/2</span>
+        </div>
+
+        <div id="google-verify-alert" class="auth-alert hidden" aria-live="polite"></div>
+
+        <!-- Verification Method Selector (Tabs) -->
+        <div class="verify-tabs">
+          <button type="button" class="verify-tab active" id="tab-verify-otp" data-target="panel-verify-otp">
+            <span class="tab-icon">📧</span>
+            <span class="tab-label">Email OTP</span>
+          </button>
+          <button type="button" class="verify-tab" id="tab-verify-pwd" data-target="panel-verify-pwd">
+            <span class="tab-icon">🔑</span>
+            <span class="tab-label">Account Password</span>
+          </button>
+        </div>
+
+        <!-- Panel 1: Email OTP -->
+        <div id="panel-verify-otp" class="verify-tab-content">
+          <p class="verify-intro-text">
+            We will send a 6-digit one-time code to <strong id="otp-target-email">your Google email</strong>.
+          </p>
+          <div class="otp-action-row">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-google-send-otp">
+              <span>Send Verification Code</span>
+              <span class="btn-spinner hidden"></span>
+            </button>
+            <span class="text-xs text-muted" id="google-otp-status-text">Click button to generate code</span>
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label">Enter 6-Digit OTP</label>
+            <div class="otp-inputs-wrapper" id="google-otp-container">
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+              <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" />
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block" id="btn-google-verify-otp-submit">
+            <span>Verify Code & Sign In →</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+        </div>
+
+        <!-- Panel 2: Account Password -->
+        <div id="panel-verify-pwd" class="verify-tab-content hidden">
+          <p class="verify-intro-text">
+            Enter your Evently account password associated with this email address.
+          </p>
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="google-verify-pwd-input" class="form-label">Password</label>
+              <button type="button" class="login-link text-sm btn-link-inline" id="google-verify-forgot-pwd-btn">Forgot password?</button>
+            </div>
+            <div class="input-password-wrapper">
+              <input type="password" id="google-verify-pwd-input" class="form-input" placeholder="Enter your password" />
+              <button type="button" class="btn-toggle-password" id="toggle-google-verify-pwd" aria-label="Toggle password visibility">
+                <svg class="eye-icon eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="eye-icon eye-closed hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block" id="btn-google-verify-pwd-submit">
+            <span>Verify Password & Sign In →</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
