@@ -423,8 +423,12 @@ export const Router = {
       return this.navigate('/complete-profile');
     }
 
-    // Rule 3: Authenticated user with complete profile visiting /login or /complete-profile -> redirect to /calendar
-    if (isAuth && isProfileDone && (path === '/login' || path === '/complete-profile')) {
+    // Rule 3: Authenticated user with complete profile visiting /login or /complete-profile -> redirect to /calendar (unless in edit mode)
+    const isProfileEdit = new URLSearchParams(window.location.search).get('edit') === '1' || new URLSearchParams(window.location.search).get('edit') === 'true';
+    if (isAuth && isProfileDone && path === '/login') {
+      return this.navigate('/calendar');
+    }
+    if (isAuth && isProfileDone && path === '/complete-profile' && !isProfileEdit) {
       return this.navigate('/calendar');
     }
 
@@ -453,6 +457,23 @@ export const Router = {
 
     // Update navbar state (authenticated vs unauthenticated)
     this.updateNavbar(isAuth, path);
+
+    // Update Icon Sidebar active state
+    const sidebar = document.getElementById('icon-sidebar');
+    if (sidebar) {
+      sidebar.querySelectorAll('.icon-nav-item').forEach(el => el.classList.remove('active'));
+      if (path === '/calendar') {
+        const calLink = sidebar.querySelector('a[data-tooltip="Calendar"]');
+        if (calLink) calLink.classList.add('active');
+      } else if (path === '/events') {
+        const eventsBtn = document.getElementById('btn-icon-nav-events');
+        if (eventsBtn) eventsBtn.classList.add('active');
+      }
+    }
+
+    if (path === '/complete-profile' && typeof window.populateProfileFormFromUser === 'function') {
+      window.populateProfileFormFromUser();
+    }
 
     if ((path === '/calendar' || path === '/events') && typeof window.refreshCalendar === 'function') {
       window.refreshCalendar();
@@ -1143,6 +1164,29 @@ function initProfileCompletionForm() {
       }
     });
   });
+
+  function populateProfileFormFromUser() {
+    const user = AuthService.getUser();
+    if (!user) return;
+    if (degreeSelect && user.degree) degreeSelect.value = user.degree;
+    if (collegeInput && user.college) collegeInput.value = user.college;
+    if (branchSelect && user.branch) branchSelect.value = user.branch;
+    if (gradYearSelect && user.graduation_year) gradYearSelect.value = String(user.graduation_year);
+    if (countrySelect && user.country) countrySelect.value = user.country;
+
+    if (Array.isArray(user.interests) && chipGrid) {
+      user.interests.forEach(interest => {
+        selectedInterests.add(interest);
+        const chip = chipGrid.querySelector(`.interest-chip[data-value="${interest}"]`);
+        if (chip) chip.classList.add('selected');
+      });
+      if (countBadge) countBadge.textContent = `${selectedInterests.size} selected`;
+      if (interestsError) interestsError.classList.add('hidden');
+    }
+  }
+
+  window.populateProfileFormFromUser = populateProfileFormFromUser;
+  populateProfileFormFromUser();
 
   profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1888,6 +1932,216 @@ function initCalendarDashboard() {
   }
 
   if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', () => drawer?.setAttribute('aria-hidden', 'true'));
+
+  // ==========================================
+  // ICON SIDEBAR NAVIGATION BUTTONS & MODALS
+  // ==========================================
+
+  // 1. Events Catalog / Schedule button (Flag icon)
+  const navEventsBtn = document.getElementById('btn-icon-nav-events');
+  if (navEventsBtn) {
+    navEventsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      Router.navigate('/events');
+    });
+  }
+
+  // 2. Event Tracking button (Pulse / Activity line icon)
+  const navTrackingBtn = document.getElementById('btn-icon-nav-tracking');
+  if (navTrackingBtn) {
+    navTrackingBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.location.pathname !== '/calendar') {
+        Router.navigate('/calendar');
+      }
+      const todayStr = '2026-09-19';
+      const masterEvents = getMasterEventsList();
+      const todayEvents = masterEvents.filter(evt => evt.date === todayStr);
+
+      openDateDrawer(todayStr, todayEvents);
+
+      const todayFeedItem = document.querySelector(`.feed-day-group[data-date="${todayStr}"]`);
+      if (todayFeedItem) {
+        todayFeedItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        todayFeedItem.style.transition = 'box-shadow 0.4s ease';
+        todayFeedItem.style.boxShadow = '0 0 0 3px #ea580c';
+        setTimeout(() => { todayFeedItem.style.boxShadow = ''; }, 1600);
+      }
+      Router.showToastNotification('Live Event Tracking', `Tracking ${todayEvents.length} campus activity session${todayEvents.length === 1 ? '' : 's'} scheduled for today.`);
+    });
+  }
+
+  // 3. Achievements & Activities button (Medal / Ribbon icon)
+  const navAchieveBtn = document.getElementById('btn-icon-nav-achieve');
+  const achieveModal = document.getElementById('achievements-modal');
+  const achieveCloseBtn = document.getElementById('modal-close-achievements');
+  const achieveBackdrop = document.getElementById('backdrop-achievements');
+
+  if (navAchieveBtn) {
+    navAchieveBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      renderAchievementsModal();
+      if (achieveModal) achieveModal.setAttribute('aria-hidden', 'false');
+    });
+  }
+  if (achieveCloseBtn) achieveCloseBtn.addEventListener('click', () => achieveModal?.setAttribute('aria-hidden', 'true'));
+  if (achieveBackdrop) achieveBackdrop.addEventListener('click', () => achieveModal?.setAttribute('aria-hidden', 'true'));
+
+  function renderAchievementsModal() {
+    const registeredIds = AuthService.getRegistrations();
+    const regCount = registeredIds.length;
+    const masterEvents = getMasterEventsList();
+    const registeredEvts = masterEvents.filter(e => registeredIds.includes(e.id));
+
+    const baseScore = 200;
+    const pointsPerEvent = 100;
+    const totalPoints = baseScore + (regCount * pointsPerEvent);
+
+    let tier = 'Campus Explorer';
+    let nextMilestone = 300;
+    if (totalPoints >= 600) {
+      tier = 'Campus Legend';
+      nextMilestone = 1000;
+    } else if (totalPoints >= 400) {
+      tier = 'Campus Ambassador';
+      nextMilestone = 600;
+    }
+
+    const pct = Math.min(100, Math.round((totalPoints / nextMilestone) * 100));
+
+    const pointsEl = document.getElementById('achieve-total-points');
+    const tierEl = document.getElementById('achieve-tier-title');
+    const countEl = document.getElementById('achieve-events-count');
+    const pctEl = document.getElementById('achieve-progress-pct');
+    const barEl = document.getElementById('achieve-progress-bar');
+    const badgesGrid = document.getElementById('achieve-badges-grid');
+
+    if (pointsEl) pointsEl.textContent = `${totalPoints} PTS`;
+    if (tierEl) tierEl.textContent = `🌟 Tier: ${tier}`;
+    if (countEl) countEl.textContent = String(regCount);
+    if (pctEl) pctEl.textContent = `${pct}%`;
+    if (barEl) barEl.style.width = `${pct}%`;
+
+    const hasHackathon = registeredEvts.some(e => (e.category || '').toLowerCase().includes('hackathon') || (e.category || '').toLowerCase().includes('tech'));
+    const hasCoding = registeredEvts.some(e => (e.category || '').toLowerCase().includes('coding') || (e.category || '').toLowerCase().includes('competition'));
+    const hasCultural = registeredEvts.some(e => (e.category || '').toLowerCase().includes('cultural') || (e.category || '').toLowerCase().includes('arts'));
+    const hasSports = registeredEvts.some(e => (e.category || '').toLowerCase().includes('sport'));
+
+    const badges = [
+      { icon: '🎓', title: 'Verified Student', desc: 'Joined Evently Portal', unlocked: true },
+      { icon: '🎟️', title: 'Pass Holder', desc: 'Registered for an Event', unlocked: regCount > 0 },
+      { icon: '💻', title: 'Code Pioneer', desc: 'Coding Contests', unlocked: hasCoding },
+      { icon: '⚡', title: 'Hackathon Hero', desc: 'Tech Hackathons', unlocked: hasHackathon },
+      { icon: '🎭', title: 'Culture Icon', desc: 'Campus Arts & Fest', unlocked: hasCultural },
+      { icon: '⚽', title: 'Athlete Spirit', desc: 'Sports & Fitness', unlocked: hasSports }
+    ];
+
+    if (badgesGrid) {
+      badgesGrid.innerHTML = badges.map(b => `
+        <div style="background: ${b.unlocked ? 'var(--bg-secondary)' : 'rgba(0,0,0,0.03)'}; border: 1px solid ${b.unlocked ? '#ea580c' : 'var(--border-color)'}; border-radius: 10px; padding: 0.75rem; text-align: center; opacity: ${b.unlocked ? '1' : '0.55'};">
+          <div style="font-size: 1.6rem; margin-bottom: 0.25rem;">${b.icon}</div>
+          <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-dark);">${b.title}</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">${b.desc}</div>
+          <div style="font-size: 0.65rem; font-weight: 700; color: ${b.unlocked ? '#ea580c' : 'var(--text-muted)'}; margin-top: 4px;">
+            ${b.unlocked ? '✓ UNLOCKED' : '🔒 LOCKED'}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // 4. Help & Support button (Question mark icon)
+  const navHelpBtn = document.getElementById('btn-icon-nav-help');
+  const helpModal = document.getElementById('help-support-modal');
+  const helpCloseBtn = document.getElementById('modal-close-help-support');
+  const helpCloseBtn2 = document.getElementById('btn-help-close');
+  const helpAboutBtn = document.getElementById('btn-help-about');
+  const helpBackdrop = document.getElementById('backdrop-help-support');
+
+  if (navHelpBtn) {
+    navHelpBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (helpModal) helpModal.setAttribute('aria-hidden', 'false');
+    });
+  }
+  if (helpCloseBtn) helpCloseBtn.addEventListener('click', () => helpModal?.setAttribute('aria-hidden', 'true'));
+  if (helpCloseBtn2) helpCloseBtn2.addEventListener('click', () => helpModal?.setAttribute('aria-hidden', 'true'));
+  if (helpBackdrop) helpBackdrop.addEventListener('click', () => helpModal?.setAttribute('aria-hidden', 'true'));
+  if (helpAboutBtn) {
+    helpAboutBtn.addEventListener('click', () => {
+      if (helpModal) helpModal.setAttribute('aria-hidden', 'true');
+      Router.navigate('/about');
+    });
+  }
+
+  // 5. Student Profile button (Profile user outline icon)
+  const navProfileBtn = document.getElementById('btn-open-profile');
+  const profileModal = document.getElementById('student-profile-modal');
+  const profileCloseBtn = document.getElementById('modal-close-student-profile');
+  const profileCloseBtn2 = document.getElementById('btn-profile-modal-close');
+  const profileEditBtn = document.getElementById('btn-profile-modal-edit');
+  const profileBackdrop = document.getElementById('backdrop-student-profile');
+
+  if (navProfileBtn) {
+    navProfileBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      renderStudentProfileModal();
+      if (profileModal) profileModal.setAttribute('aria-hidden', 'false');
+    });
+  }
+  if (profileCloseBtn) profileCloseBtn.addEventListener('click', () => profileModal?.setAttribute('aria-hidden', 'true'));
+  if (profileCloseBtn2) profileCloseBtn2.addEventListener('click', () => profileModal?.setAttribute('aria-hidden', 'true'));
+  if (profileBackdrop) profileBackdrop.addEventListener('click', () => profileModal?.setAttribute('aria-hidden', 'true'));
+  if (profileEditBtn) {
+    profileEditBtn.addEventListener('click', () => {
+      if (profileModal) profileModal.setAttribute('aria-hidden', 'true');
+      Router.navigate('/complete-profile?edit=1');
+    });
+  }
+
+  function renderStudentProfileModal() {
+    const user = AuthService.getUser();
+    if (!user) {
+      Router.navigate('/login');
+      return;
+    }
+    const nameEl = document.getElementById('profile-modal-name');
+    const emailEl = document.getElementById('profile-modal-email');
+    const collegeEl = document.getElementById('profile-modal-college');
+    const branchEl = document.getElementById('profile-modal-branch');
+    const gradEl = document.getElementById('profile-modal-grad');
+    const passesEl = document.getElementById('profile-modal-passes');
+    const avatarSlot = document.getElementById('profile-modal-avatar-slot');
+    const interestsEl = document.getElementById('profile-modal-interests');
+
+    if (nameEl) nameEl.textContent = user.name || user.username || 'Student User';
+    if (emailEl) emailEl.textContent = user.email || 'student@college.edu';
+    if (collegeEl) collegeEl.textContent = user.college || 'Bangalore Institute of Technology';
+    if (branchEl) branchEl.textContent = `${user.degree || 'B.E.'} ${user.branch ? '· ' + user.branch : 'Computer Science'}`;
+    if (gradEl) gradEl.textContent = user.graduation_year ? `Class of ${user.graduation_year}` : 'Class of 2027';
+
+    const regCount = AuthService.getRegistrations().length;
+    if (passesEl) passesEl.textContent = `${regCount} Confirmed Pass${regCount === 1 ? '' : 'es'}`;
+
+    if (avatarSlot) {
+      if (user.avatar) {
+        avatarSlot.innerHTML = `<img src="${user.avatar}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;" />`;
+      } else {
+        avatarSlot.innerHTML = '🎓';
+      }
+    }
+
+    if (interestsEl) {
+      const interests = Array.isArray(user.interests) && user.interests.length > 0 
+        ? user.interests 
+        : ['Technical Workshops', 'Coding Competitions', 'Hackathons'];
+      interestsEl.innerHTML = interests.map(i => `
+        <span style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 6px; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-dark); font-weight: 600;">
+          ${i}
+        </span>
+      `).join('');
+    }
+  }
 
   // Controls Navigation
   if (prevMonthBtn) {

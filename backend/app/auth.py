@@ -129,6 +129,23 @@ def verify_oauth_token(token: str) -> dict:
     import urllib.request
     import urllib.error
 
+    # 0. Try decoding with app SECRET_KEY
+    if SECRET_KEY:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_aud": False})
+            email = payload.get("email")
+            if email:
+                return {
+                    "email": email,
+                    "username": payload.get("username") or email.split("@")[0],
+                    "name": payload.get("name") or email.split("@")[0],
+                    "avatar": payload.get("avatar"),
+                    "sub": str(payload.get("sub", "")),
+                    "provider": "app"
+                }
+        except Exception:
+            pass
+
     # 1. Try decoding with SUPABASE_JWT_SECRET if configured
     if SUPABASE_JWT_SECRET:
         for secret_candidate in [SUPABASE_JWT_SECRET, base64.b64decode(SUPABASE_JWT_SECRET + "==") if len(SUPABASE_JWT_SECRET) > 40 else SUPABASE_JWT_SECRET.encode()]:

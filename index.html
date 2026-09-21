@@ -948,9 +948,9 @@
               </a>
 
               <!-- Events -->
-              <button type="button" class="icon-nav-item" id="btn-icon-nav-events" data-tooltip="Events">
+              <a href="/events" class="icon-nav-item route-link" id="btn-icon-nav-events" data-tooltip="Events">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
-              </button>
+              </a>
 
               <!-- Event Tracking -->
               <button type="button" class="icon-nav-item" id="btn-icon-nav-tracking" data-tooltip="Event Tracking">
@@ -1469,6 +1469,157 @@
         </div>
         <div class="registrations-list" id="registrations-list-container">
           <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENTS & ACTIVITIES MODAL -->
+    <div id="achievements-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-achievements"></div>
+      <div class="dash-modal-card" style="max-width: 580px;">
+        <button type="button" class="dash-modal-close" id="modal-close-achievements" aria-label="Close Modal">✕</button>
+        <div class="registrations-header" style="margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+            <span style="font-size: 1.75rem;">🏅</span>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-dark); margin: 0;">Achievements & Activity Score</h2>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Track your campus participation badges, milestones, and student score</p>
+        </div>
+
+        <!-- Student Score Banner -->
+        <div id="achieve-score-banner" style="background: linear-gradient(135deg, #ea580c 0%, #f59e0b 100%); color: #ffffff; border-radius: 14px; padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25);">
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9;">Campus Activity Score</div>
+            <div style="font-size: 2rem; font-weight: 900; line-height: 1.1;" id="achieve-total-points">250 PTS</div>
+            <div style="font-size: 0.82rem; margin-top: 0.25rem; opacity: 0.95;" id="achieve-tier-title">🌟 Tier: Campus Explorer</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; opacity: 0.9;">Events Joined</div>
+            <div style="font-size: 1.75rem; font-weight: 800;" id="achieve-events-count">0</div>
+            <div style="font-size: 0.72rem; opacity: 0.85;">Confirmed Passes</div>
+          </div>
+        </div>
+
+        <!-- Badges Grid -->
+        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.75rem;">Student Badges</h4>
+        <div id="achieve-badges-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+          <!-- Dynamically populated badges -->
+        </div>
+
+        <!-- Milestone Progress -->
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">
+            <span style="color: var(--text-dark);">Next Milestone: Campus Ambassador (500 pts)</span>
+            <span style="color: #ea580c;" id="achieve-progress-pct">50%</span>
+          </div>
+          <div style="height: 8px; background: var(--border-color); border-radius: 999px; overflow: hidden;">
+            <div id="achieve-progress-bar" style="height: 100%; width: 50%; background: #ea580c; border-radius: 999px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HELP & SUPPORT MODAL -->
+    <div id="help-support-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-help-support"></div>
+      <div class="dash-modal-card" style="max-width: 580px;">
+        <button type="button" class="dash-modal-close" id="modal-close-help-support" aria-label="Close Modal">✕</button>
+        <div class="registrations-header" style="margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+            <span style="font-size: 1.75rem;">❓</span>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-dark); margin: 0;">Help & Campus Support</h2>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Frequently asked questions and student assistance</p>
+        </div>
+
+        <!-- FAQs Accordion / List -->
+        <div style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 380px; overflow-y: auto; margin-bottom: 1.25rem;">
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.85rem 1rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.3rem;">🎟️ How do I register for college events?</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin: 0;">Browse events on the calendar or click the Events icon (🚩). Click on any event card, review details, and click "Register for Event". Your pass is saved immediately.</p>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.85rem 1rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.3rem;">🎫 Where do I find my entry passes?</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin: 0;">Click the Ticket icon (🎫) on the sidebar anytime to open "My Registrations" and view all your confirmed entry passes with scanning QR codes.</p>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.85rem 1rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.3rem;">⚡ How do I track today's live events?</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin: 0;">Click the Activity/Pulse icon (📈) on the vertical sidebar to jump straight into today's live schedule and see ongoing campus sessions.</p>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.85rem 1rem;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.3rem;">📬 Need direct help or want to host an event?</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin: 0;">Reach out to the Evently campus support desk at <strong style="color:#ea580c;">support@evently.edu</strong> or contact your student club faculty coordinator.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-help-close">Close</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-help-about">View Full About Page</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT PROFILE MODAL -->
+    <div id="student-profile-modal" class="dash-modal" aria-hidden="true">
+      <div class="dash-modal-backdrop" id="backdrop-student-profile"></div>
+      <div class="dash-modal-card" style="max-width: 520px;">
+        <button type="button" class="dash-modal-close" id="modal-close-student-profile" aria-label="Close Modal">✕</button>
+        
+        <!-- Profile Header -->
+        <div style="display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border-color);">
+          <div id="profile-modal-avatar-slot" style="width: 64px; height: 64px; border-radius: 50%; background: #ea580c; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; border: 3px solid #ffedd5; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25); overflow: hidden;">
+            🎓
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <h3 id="profile-modal-name" style="font-size: 1.25rem; font-weight: 800; color: var(--text-dark); margin: 0 0 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Student User</h3>
+            <p id="profile-modal-email" style="font-size: 0.85rem; color: var(--text-muted); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">student@college.edu</p>
+            <div style="display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.4rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(234, 88, 12, 0.12); color: #ea580c; font-size: 0.75rem; font-weight: 700;">
+              <span>✓ Verified Student Account</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Details Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">College / University</div>
+            <div id="profile-modal-college" style="font-size: 0.85rem; font-weight: 700; color: var(--text-dark); margin-top: 0.2rem; line-height: 1.3;">Bangalore Institute of Technology</div>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Degree & Branch</div>
+            <div id="profile-modal-branch" style="font-size: 0.85rem; font-weight: 700; color: var(--text-dark); margin-top: 0.2rem; line-height: 1.3;">B.E. Computer Science</div>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Graduation Year</div>
+            <div id="profile-modal-grad" style="font-size: 0.85rem; font-weight: 700; color: var(--text-dark); margin-top: 0.2rem;">Class of 2027</div>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Active Passes</div>
+            <div id="profile-modal-passes" style="font-size: 0.85rem; font-weight: 700; color: #ea580c; margin-top: 0.2rem;">0 Confirmed</div>
+          </div>
+        </div>
+
+        <!-- Selected Interests Tags -->
+        <div style="margin-bottom: 1.5rem;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Interests & Preferences</div>
+          <div id="profile-modal-interests" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 0.75rem; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn btn-outline btn-sm logout-btn-trigger" style="color: #dc2626; border-color: #fca5a5;">Sign Out</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-profile-modal-close">Close</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-profile-modal-edit">Edit Profile</button>
+          </div>
         </div>
       </div>
     </div>
