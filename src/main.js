@@ -64,6 +64,24 @@ export const AuthService = {
     }
   },
 
+  async getValidToken() {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.access_token) {
+        const user = this.getUser();
+        if (user && user.token !== data.session.access_token) {
+          user.token = data.session.access_token;
+          localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+        }
+        return data.session.access_token;
+      }
+    } catch (e) {
+      console.warn('Could not refresh session token:', e);
+    }
+    const user = this.getUser();
+    return user?.token || null;
+  },
+
   async syncWithBackend(session) {
     if (!session || !session.access_token) return null;
     const token = session.access_token;
@@ -1220,6 +1238,23 @@ export function mapBackendEvent(e) {
   };
 }
 
+export function getEventStatus(evt) {
+  if (!evt) return { isPast: true, canRegister: false, statusText: 'Unavailable' };
+  const isPast = evt.status === 'COMPLETED' || (evt.dateStr && evt.dateStr < '2026-09-19');
+  const isDeadlinePassed = evt.status === 'REGISTRATION_CLOSED';
+  const canRegister = evt.canRegister !== undefined ? Boolean(evt.canRegister) : (!isPast && !isDeadlinePassed);
+  return {
+    isPast,
+    isToday: evt.status === 'IN_PROGRESS' || evt.dateStr === '2026-09-19',
+    isFuture: evt.dateStr ? evt.dateStr > '2026-09-19' : false,
+    isDeadlinePassed,
+    statusText: evt.statusText || (isPast ? 'Event completed' : (isDeadlinePassed ? 'Registration deadline over' : 'Registration open')),
+    statusBadgeClass: evt.statusBadgeClass || (isPast ? 'badge-completed' : (isDeadlinePassed ? 'badge-deadline-over' : 'badge-open')),
+    canRegister
+  };
+}
+window.getEventStatus = getEventStatus;
+
 function getMasterEventsList() {
   return window.CAMPUS_EVENTS_DATASET || [];
 }
@@ -1284,15 +1319,18 @@ function initCalendarDashboard() {
 
   async function syncUserRegistrations() {
     const user = AuthService.getUser();
-    if (user && user.token) {
+    const token = await AuthService.getValidToken();
+    if (token) {
       try {
         const res = await fetch(`${API_URL}/registrations/me`, {
-          headers: { 'Authorization': `Bearer ${user.token}` }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
           const regs = await res.json();
-          user.registeredEvents = regs.map(r => r.event_id);
-          localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+          if (user) {
+            user.registeredEvents = regs.map(r => r.event_id);
+            localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+          }
           renderGrid();
         }
       } catch (e) {
@@ -1583,14 +1621,7 @@ function initCalendarDashboard() {
     const masterEvents = getMasterEventsList();
     const evt = masterEvents.find(e => e.id === eventId) || activeEventForRegistration;
     const isReg = AuthService.isUserRegistered(eventId);
-    const statusInfo = evt && evt.status
-      ? {
-          isPast: evt.status === 'COMPLETED',
-          isDeadlinePassed: evt.status === 'REGISTRATION_CLOSED',
-          canRegister: evt.canRegister !== undefined ? evt.canRegister : evt.can_register,
-          statusText: evt.statusText || evt.status_text || 'Open'
-        }
-      : (window.getEventStatus && evt ? window.getEventStatus(evt) : { isPast: false, canRegister: true });
+    const statusInfo = getEventStatus(evt);
 
     if (isReg) {
       modalRegisterBtn.textContent = '✓ Registered (Click to Cancel)';
@@ -1600,7 +1631,7 @@ function initCalendarDashboard() {
       modalRegisterBtn.textContent = 'Event Completed';
       modalRegisterBtn.className = 'btn btn-secondary btn-lg';
       modalRegisterBtn.disabled = true;
-    } else if (statusInfo.isDeadlinePassed) {
+    } else if (statusInfo.isDeadlinePassed || !statusInfo.canRegister) {
       modalRegisterBtn.textContent = 'Registration Deadline Over';
       modalRegisterBtn.className = 'btn btn-secondary btn-lg';
       modalRegisterBtn.disabled = true;
@@ -1619,23 +1650,17 @@ function initCalendarDashboard() {
   if (modalRegisterBtn) {
     modalRegisterBtn.addEventListener('click', async () => {
       if (!activeEventForRegistration) return;
-      const statusInfo = activeEventForRegistration.status
-        ? {
-            isPast: activeEventForRegistration.status === 'COMPLETED',
-            isDeadlinePassed: activeEventForRegistration.status === 'REGISTRATION_CLOSED',
-            canRegister: activeEventForRegistration.canRegister !== undefined ? activeEventForRegistration.canRegister : activeEventForRegistration.can_register
-          }
-        : (window.getEventStatus ? window.getEventStatus(activeEventForRegistration) : { canRegister: true });
+      const statusInfo = getEventStatus(activeEventForRegistration);
       const isReg = AuthService.isUserRegistered(activeEventForRegistration.id);
 
       if (isReg) {
         // Cancel Registration via backend API
-        const user = AuthService.getUser();
-        if (user && user.token) {
+        const token = await AuthService.getValidToken();
+        if (token) {
           try {
             await fetch(`${API_URL}/registrations/${activeEventForRegistration.id}`, {
               method: 'DELETE',
-              headers: { 'Authorization': `Bearer ${user.token}` }
+              headers: { 'Authorization': `Bearer ${token}` }
             });
           } catch (e) {
             console.warn('Backend cancel registration error:', e);
@@ -1648,40 +1673,63 @@ function initCalendarDashboard() {
         renderGrid();
       } else if (statusInfo.canRegister) {
         closeDetailsModal();
-        Router.navigate(`/event?id=${activeEventForRegistration.id}`);
+        if (confirmModal) {
+          const confirmTitle = document.getElementById('confirm-modal-title');
+          const confirmDesc = document.getElementById('confirm-modal-desc');
+          if (confirmTitle) confirmTitle.textContent = `Register for ${activeEventForRegistration.title}?`;
+          if (confirmDesc) confirmDesc.innerHTML = `Are you sure you want to register for <strong>${activeEventForRegistration.title}</strong>? A digital entry pass with QR code will be added to your account.`;
+          confirmModal.setAttribute('aria-hidden', 'false');
+        } else {
+          Router.navigate(`/event?id=${activeEventForRegistration.id}`);
+        }
       }
     });
   }
 
   if (confirmSubmitBtn) {
     confirmSubmitBtn.addEventListener('click', async () => {
-      if (activeEventForRegistration) {
-        const user = AuthService.getUser();
-        if (user && user.token) {
-          try {
-            const res = await fetch(`${API_URL}/registrations`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}`
-              },
-              body: JSON.stringify({ event_id: activeEventForRegistration.id })
-            });
-            if (!res.ok) {
-              const err = await res.json().catch(() => ({}));
-              if (confirmModal) confirmModal.setAttribute('aria-hidden', 'true');
-              Router.showToastNotification('Registration Failed', err.detail || 'Could not register for event.');
-              return;
-            }
-          } catch (e) {
-            console.warn('Backend registration error:', e);
-          }
+      if (!activeEventForRegistration) return;
+      
+      const token = await AuthService.getValidToken();
+      if (!token) {
+        if (confirmModal) confirmModal.setAttribute('aria-hidden', 'true');
+        Router.showToastNotification('Authentication Required', 'Please sign in to register for events.');
+        return Router.navigate('/login');
+      }
+
+      confirmSubmitBtn.disabled = true;
+      confirmSubmitBtn.textContent = 'Registering...';
+
+      try {
+        const res = await fetch(`${API_URL}/registrations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ event_id: activeEventForRegistration.id })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          if (confirmModal) confirmModal.setAttribute('aria-hidden', 'true');
+          Router.showToastNotification('Registration Failed', err.detail || 'Could not register for event.');
+          confirmSubmitBtn.disabled = false;
+          confirmSubmitBtn.textContent = 'Confirm Registration';
+          return;
         }
+
         AuthService.registerEvent(activeEventForRegistration.id);
+        activeEventForRegistration.registeredCount = (activeEventForRegistration.registeredCount || 0) + 1;
         if (confirmModal) confirmModal.setAttribute('aria-hidden', 'true');
         Router.showToastNotification('Registration Successful! 🎉', `You are registered for ${activeEventForRegistration.title}. Check My Registrations for pass details.`);
         Router.updateNavbar(true, '/calendar');
         renderGrid();
+      } catch (e) {
+        console.warn('Backend registration error:', e);
+        Router.showToastNotification('Network Error', 'Could not complete registration due to network error.');
+      } finally {
+        confirmSubmitBtn.disabled = false;
+        confirmSubmitBtn.textContent = 'Confirm Registration';
       }
     });
   }
@@ -1712,22 +1760,25 @@ function initCalendarDashboard() {
     if (!regListContainer) return;
     const user = AuthService.getUser();
     let registeredEvts = [];
-    if (user && user.token) {
+    const token = await AuthService.getValidToken();
+    if (token) {
       try {
         const res = await fetch(`${API_URL}/registrations/me`, {
-          headers: { 'Authorization': `Bearer ${user.token}` }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
           const raw = await res.json();
           registeredEvts = raw.map(r => r.event ? mapBackendEvent(r.event) : null).filter(Boolean);
-          user.registeredEvents = raw.map(r => r.event_id);
-          localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+          if (user) {
+            user.registeredEvents = raw.map(r => r.event_id);
+            localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+          }
         }
       } catch (e) {
         console.warn('Could not fetch registrations from backend:', e);
       }
     }
-    if (registeredEvts.length === 0) {
+    if (registeredEvts.length === 0 && user) {
       const registeredIds = AuthService.getRegistrations();
       const masterEvents = getMasterEventsList();
       registeredEvts = masterEvents.filter(evt => registeredIds.includes(evt.id));
@@ -2284,6 +2335,7 @@ function updateDetailActionCard(evt) {
   if (progressEl) progressEl.style.width = `${percent}%`;
 
   const isRegistered = AuthService.isUserRegistered(evt.id);
+  const statusInfo = getEventStatus(evt);
 
   if (statusPillEl) {
     if (isRegistered) {
@@ -2291,6 +2343,16 @@ function updateDetailActionCard(evt) {
       statusPillEl.style.color = '#15803d';
       statusPillEl.style.background = '#dcfce7';
       statusPillEl.style.borderColor = '#86efac';
+    } else if (statusInfo.isPast) {
+      statusPillEl.textContent = '● Event Completed';
+      statusPillEl.style.color = '#64748b';
+      statusPillEl.style.background = '#f1f5f9';
+      statusPillEl.style.borderColor = '#cbd5e1';
+    } else if (statusInfo.isDeadlinePassed || !statusInfo.canRegister) {
+      statusPillEl.textContent = '● Registration Closed';
+      statusPillEl.style.color = '#ef4444';
+      statusPillEl.style.background = '#fef2f2';
+      statusPillEl.style.borderColor = '#fecaca';
     } else {
       statusPillEl.textContent = '● Registration Open';
       statusPillEl.style.color = '#10b981';
@@ -2307,6 +2369,16 @@ function updateDetailActionCard(evt) {
     }
     if (noticeEl) noticeEl.textContent = 'Your entry pass is active and confirmed below.';
     if (passPreview) passPreview.classList.remove('hidden');
+    if (cancelBtn) cancelBtn.classList.remove('hidden');
+  } else if (!statusInfo.canRegister || statusInfo.isPast || statusInfo.isDeadlinePassed) {
+    if (regBtn) {
+      regBtn.textContent = statusInfo.isPast ? 'Event Completed' : 'Registration Closed';
+      regBtn.className = 'btn btn-secondary btn-lg w-full';
+      regBtn.disabled = true;
+    }
+    if (noticeEl) noticeEl.textContent = statusInfo.isPast ? 'This event has concluded. Registrations are closed.' : 'The registration deadline has passed.';
+    if (passPreview) passPreview.classList.add('hidden');
+    if (cancelBtn) cancelBtn.classList.add('hidden');
   } else {
     if (regBtn) {
       regBtn.textContent = 'Register for Event →';
@@ -2315,6 +2387,7 @@ function updateDetailActionCard(evt) {
     }
     if (noticeEl) noticeEl.textContent = 'Instant digital pass generated upon registration.';
     if (passPreview) passPreview.classList.add('hidden');
+    if (cancelBtn) cancelBtn.classList.add('hidden');
   }
 
   // Re-bind register click
@@ -2325,42 +2398,54 @@ function updateDetailActionCard(evt) {
         return Router.navigate('/login');
       }
       
-      const user = AuthService.getUser();
-      if (user && user.token) {
-        try {
-          const res = await fetch(`${API_URL}/registrations`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${user.token}`
-            },
-            body: JSON.stringify({ event_id: evt.id })
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            Router.showToastNotification('Registration Issue', err.detail || 'Could not register.');
-          }
-        } catch (e) {
-          console.warn('Backend registration note:', e);
-        }
+      const token = await AuthService.getValidToken();
+      if (!token) {
+        Router.showToastNotification('Authentication Required', 'Session expired. Please sign in again.');
+        return Router.navigate('/login');
       }
 
-      AuthService.registerEvent(evt.id);
-      evt.registeredCount = (evt.registeredCount || 0) + 1;
-      Router.showToastNotification('Registration Confirmed! 🎉', `You are registered for ${evt.title}. Entry pass generated!`);
-      updateDetailActionCard(evt);
+      regBtn.disabled = true;
+      regBtn.textContent = 'Registering...';
+
+      try {
+        const res = await fetch(`${API_URL}/registrations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ event_id: evt.id })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          Router.showToastNotification('Registration Failed', err.detail || 'Could not register for this event.');
+          regBtn.disabled = false;
+          regBtn.textContent = 'Register for Event →';
+          return;
+        }
+
+        AuthService.registerEvent(evt.id);
+        evt.registeredCount = (evt.registeredCount || 0) + 1;
+        Router.showToastNotification('Registration Confirmed! 🎉', `You are registered for ${evt.title}. Entry pass generated!`);
+        updateDetailActionCard(evt);
+      } catch (e) {
+        console.warn('Backend registration error:', e);
+        Router.showToastNotification('Network Error', 'Could not reach server to register.');
+        regBtn.disabled = false;
+        regBtn.textContent = 'Register for Event →';
+      }
     };
   }
 
   // Re-bind cancel click
   if (cancelBtn) {
     cancelBtn.onclick = async () => {
-      const user = AuthService.getUser();
-      if (user && user.token) {
+      const token = await AuthService.getValidToken();
+      if (token) {
         try {
           await fetch(`${API_URL}/registrations/${evt.id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${user.token}` }
+            headers: { 'Authorization': `Bearer ${token}` }
           });
         } catch (e) {
           console.warn('Backend cancel registration note:', e);
