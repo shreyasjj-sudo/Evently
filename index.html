@@ -1327,6 +1327,364 @@
       </div>
 
       <!-- ===================================================================
+           VIEW 6: DEDICATED STUDENT PROFILE DASHBOARD (/profile)
+           =================================================================== -->
+      <div id="view-profile" class="page-view">
+        <div class="profile-page-wrapper">
+          <div class="container profile-page-container">
+            
+            <!-- 1. Hero Profile Banner -->
+            <div class="profile-hero-card">
+              <div class="profile-cover-mesh">
+                <div class="profile-cover-badge">
+                  <span>🎓 EVENTLY VERIFIED CAMPUS PROFILE</span>
+                </div>
+              </div>
+              
+              <div class="profile-hero-body">
+                <div class="profile-avatar-wrap">
+                  <div class="profile-avatar-ring" id="profile-page-avatar">
+                    🎓
+                  </div>
+                  <span class="profile-online-indicator" title="Active Campus Session"></span>
+                </div>
+
+                <div class="profile-hero-info">
+                  <div class="profile-name-row">
+                    <h1 class="profile-full-name" id="profile-page-name">Student User</h1>
+                    <span class="profile-badge-pill" id="profile-verified-badge">✓ Verified Student</span>
+                  </div>
+                  <p class="profile-handle" id="profile-page-handle">@student · student@college.edu</p>
+                  <p class="profile-college-line" id="profile-page-college-display">
+                    📍 Bangalore Institute of Technology · B.E. Computer Science · Class of 2027
+                  </p>
+                </div>
+
+                <div class="profile-hero-actions">
+                  <button type="button" class="btn btn-outline btn-sm" id="btn-profile-toggle-edit">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <span>Edit Profile</span>
+                  </button>
+                  <a href="/calendar" class="btn btn-primary btn-sm route-link">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Go to Calendar</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Profile Stats Ribbon -->
+            <div class="profile-stats-ribbon">
+              <div class="profile-stat-box">
+                <div class="stat-icon-wrap" style="background: rgba(234, 88, 12, 0.12); color: #ea580c;">🎫</div>
+                <div class="stat-meta">
+                  <span class="stat-num" id="profile-stat-passes">0</span>
+                  <span class="stat-label">Confirmed Passes</span>
+                </div>
+              </div>
+
+              <div class="profile-stat-box">
+                <div class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">⚡</div>
+                <div class="stat-meta">
+                  <span class="stat-num" id="profile-stat-points">200 PTS</span>
+                  <span class="stat-label">Activity Score</span>
+                </div>
+              </div>
+
+              <div class="profile-stat-box">
+                <div class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">🏅</div>
+                <div class="stat-meta">
+                  <span class="stat-num" id="profile-stat-tier">Campus Explorer</span>
+                  <span class="stat-label">Current Tier</span>
+                </div>
+              </div>
+
+              <div class="profile-stat-box">
+                <div class="stat-icon-wrap" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;">🛡️</div>
+                <div class="stat-meta">
+                  <span class="stat-num" id="profile-stat-auth">Google / Supabase</span>
+                  <span class="stat-label">Authentication</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Profile Content Navigation Tabs -->
+            <div class="profile-tabs-wrapper">
+              <div class="profile-tabs-header">
+                <button type="button" class="profile-tab-btn active" data-tab="academic">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                  <span>Academic Overview</span>
+                </button>
+                <button type="button" class="profile-tab-btn" data-tab="passes">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path></svg>
+                  <span>My Passes (<span id="tab-pass-count">0</span>)</span>
+                </button>
+                <button type="button" class="profile-tab-btn" data-tab="achievements">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                  <span>Badges & Milestones</span>
+                </button>
+                <button type="button" class="profile-tab-btn" data-tab="security">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  <span>Security & Account</span>
+                </button>
+              </div>
+
+              <!-- TAB 1: ACADEMIC & PERSONAL DETAILS -->
+              <div class="profile-tab-pane active" id="pane-tab-academic">
+                
+                <!-- Display Mode -->
+                <div class="profile-details-card" id="profile-display-mode">
+                  <div class="details-card-header">
+                    <h3>Academic & University Credentials</h3>
+                    <button type="button" class="btn btn-sm btn-outline" id="btn-edit-academic-details">
+                      ✏️ Edit Information
+                    </button>
+                  </div>
+
+                  <div class="profile-info-grid">
+                    <div class="info-field-cell">
+                      <span class="cell-label">Degree Program</span>
+                      <strong class="cell-val" id="view-deg-val">B.E. (Bachelor of Engineering)</strong>
+                    </div>
+
+                    <div class="info-field-cell">
+                      <span class="cell-label">School / College / University</span>
+                      <strong class="cell-val" id="view-college-val">Bangalore Institute of Technology</strong>
+                    </div>
+
+                    <div class="info-field-cell">
+                      <span class="cell-label">Branch / Department</span>
+                      <strong class="cell-val" id="view-branch-val">Computer Science & Engineering</strong>
+                    </div>
+
+                    <div class="info-field-cell">
+                      <span class="cell-label">Graduation Year</span>
+                      <strong class="cell-val" id="view-grad-val">Class of 2027</strong>
+                    </div>
+
+                    <div class="info-field-cell">
+                      <span class="cell-label">Country / Region</span>
+                      <strong class="cell-val" id="view-country-val">India 🇮🇳</strong>
+                    </div>
+
+                    <div class="info-field-cell">
+                      <span class="cell-label">Email Address</span>
+                      <strong class="cell-val" id="view-email-val">student@college.edu</strong>
+                    </div>
+                  </div>
+
+                  <!-- Interests Cloud -->
+                  <div class="profile-interests-section">
+                    <h4>Subscribed Event Categories & Interests</h4>
+                    <p class="section-hint">You receive curated campus announcements and calendar recommendations for these domains:</p>
+                    <div class="profile-tags-container" id="profile-display-interests">
+                      <!-- Rendered dynamically -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Edit Mode (Initially hidden) -->
+                <div class="profile-details-card hidden" id="profile-edit-mode">
+                  <div class="details-card-header">
+                    <h3>Update Academic Credentials & Preferences</h3>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-cancel-profile-edit">
+                      Cancel
+                    </button>
+                  </div>
+
+                  <form id="profile-page-edit-form" class="profile-interactive-form">
+                    <div class="form-grid-2col">
+                      <div class="form-group">
+                        <label for="edit-profile-degree" class="form-label">Degree <span class="text-req">*</span></label>
+                        <select id="edit-profile-degree" class="form-control form-select" required>
+                          <option value="B.E.">B.E. (Bachelor of Engineering)</option>
+                          <option value="B.Tech">B.Tech (Bachelor of Technology)</option>
+                          <option value="M.E.">M.E. (Master of Engineering)</option>
+                          <option value="M.Tech">M.Tech (Master of Technology)</option>
+                          <option value="B.Sc">B.Sc (Bachelor of Science)</option>
+                          <option value="M.Sc">M.Sc (Master of Science)</option>
+                          <option value="MCA">MCA (Master of Computer Applications)</option>
+                          <option value="MBA">MBA (Master of Business Administration)</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="edit-profile-branch" class="form-label">Branch / Department <span class="text-req">*</span></label>
+                        <select id="edit-profile-branch" class="form-control form-select" required>
+                          <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                          <option value="Information Science & Engineering">Information Science & Engineering</option>
+                          <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+                          <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
+                          <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+                          <option value="Mechanical Engineering">Mechanical Engineering</option>
+                          <option value="Civil Engineering">Civil Engineering</option>
+                          <option value="Biotechnology">Biotechnology</option>
+                          <option value="Business Administration">Business Administration</option>
+                          <option value="General Science & Humanities">General Science & Humanities</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="edit-profile-college" class="form-label">School / College / University <span class="text-req">*</span></label>
+                      <input type="text" id="edit-profile-college" class="form-control" placeholder="Search or type college name" required />
+                    </div>
+
+                    <div class="form-grid-2col">
+                      <div class="form-group">
+                        <label for="edit-profile-grad-year" class="form-label">Graduation Year <span class="text-req">*</span></label>
+                        <select id="edit-profile-grad-year" class="form-control form-select" required>
+                          <option value="2025">2025</option>
+                          <option value="2026">2026</option>
+                          <option value="2027">2027</option>
+                          <option value="2028">2028</option>
+                          <option value="2029">2029</option>
+                          <option value="2030">2030</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="edit-profile-country" class="form-label">Country <span class="text-req">*</span></label>
+                        <select id="edit-profile-country" class="form-control form-select" required>
+                          <option value="India">India 🇮🇳</option>
+                          <option value="United States">United States 🇺🇸</option>
+                          <option value="United Kingdom">United Kingdom 🇬🇧</option>
+                          <option value="Canada">Canada 🇨🇦</option>
+                          <option value="Australia">Australia 🇦🇺</option>
+                          <option value="Singapore">Singapore 🇸🇬</option>
+                          <option value="Germany">Germany 🇩🇪</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Interests Selector -->
+                    <div class="form-group">
+                      <label class="form-label">Interested Campus Event Categories <span class="text-req">*</span></label>
+                      <div class="edit-chips-grid" id="edit-interests-chips">
+                        <button type="button" class="interest-chip" data-value="Coding Competitions">💻 Coding Competitions</button>
+                        <button type="button" class="interest-chip" data-value="Technical & Hackathons">⚡ Technical & Hackathons</button>
+                        <button type="button" class="interest-chip" data-value="Technical Workshops">🛠️ Technical Workshops</button>
+                        <button type="button" class="interest-chip" data-value="Cultural & Arts">🎭 Cultural & Arts</button>
+                        <button type="button" class="interest-chip" data-value="Sports & Fitness">⚽ Sports & Fitness</button>
+                        <button type="button" class="interest-chip" data-value="Guest Lectures & Seminars">🎤 Guest Lectures & Seminars</button>
+                        <button type="button" class="interest-chip" data-value="Career & Placement">💼 Career & Placement</button>
+                        <button type="button" class="interest-chip" data-value="Festivals & Special Days">🎉 Festivals & Special Days</button>
+                      </div>
+                    </div>
+
+                    <div class="form-actions-row">
+                      <button type="button" class="btn btn-secondary" id="btn-cancel-edit-bottom">Cancel</button>
+                      <button type="submit" class="btn btn-primary" id="btn-save-profile-edit">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+
+              </div>
+
+              <!-- TAB 2: MY PASSES & TICKETS -->
+              <div class="profile-tab-pane" id="pane-tab-passes">
+                <div class="profile-details-card">
+                  <div class="details-card-header">
+                    <div>
+                      <h3>Active Campus Passes & Registrations</h3>
+                      <p class="section-hint">Digital passes with QR codes for campus entry check-ins.</p>
+                    </div>
+                    <a href="/calendar" class="btn btn-sm btn-outline route-link">+ Discover More Events</a>
+                  </div>
+
+                  <div class="profile-passes-grid" id="profile-passes-container">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 3: ACHIEVEMENTS & BADGES -->
+              <div class="profile-tab-pane" id="pane-tab-achievements">
+                <div class="profile-details-card">
+                  <div class="details-card-header">
+                    <div>
+                      <h3>Campus Achievements & Badges</h3>
+                      <p class="section-hint">Earn badges and score milestones by participating in college competitions.</p>
+                    </div>
+                  </div>
+
+                  <!-- Milestone Banner -->
+                  <div class="achieve-progress-banner">
+                    <div class="progress-banner-header">
+                      <div>
+                        <span class="banner-tier-tag" id="profile-achieve-tier">TIER: CAMPUS EXPLORER</span>
+                        <h4 id="profile-achieve-heading">Next Milestone: Campus Ambassador (400 PTS)</h4>
+                      </div>
+                      <span class="progress-pct-big" id="profile-achieve-pct">50%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                      <div class="progress-bar-fill" id="profile-achieve-bar" style="width: 50%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Badges List -->
+                  <div class="profile-badges-grid" id="profile-page-badges-grid">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 4: SECURITY & ACCOUNT SETTINGS -->
+              <div class="profile-tab-pane" id="pane-tab-security">
+                <div class="profile-details-card">
+                  <div class="details-card-header">
+                    <div>
+                      <h3>Account Security & Preferences</h3>
+                      <p class="section-hint">Manage your credentials, sessions, and notifications.</p>
+                    </div>
+                  </div>
+
+                  <div class="security-items-list">
+                    <div class="security-row">
+                      <div class="security-info">
+                        <strong>Connected Authentication Provider</strong>
+                        <p id="security-provider-text">Signed in with Supabase Cloud Identity / Google OAuth</p>
+                      </div>
+                      <span class="badge-status-pill">Active & Secure</span>
+                    </div>
+
+                    <div class="security-row">
+                      <div class="security-info">
+                        <strong>Password Reset</strong>
+                        <p>Change or update your password via email verification.</p>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-outline" id="btn-security-reset-pwd">Reset Password</button>
+                    </div>
+
+                    <div class="security-row">
+                      <div class="security-info">
+                        <strong>Theme Preference</strong>
+                        <p>Choose between light mode and dark mode interface.</p>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-outline theme-toggle-btn">Toggle Dark / Light</button>
+                    </div>
+
+                    <div class="security-row">
+                      <div class="security-info">
+                        <strong style="color: #dc2626;">Account Session</strong>
+                        <p>Log out of Evently from this device.</p>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-danger logout-btn-trigger">Sign Out of Evently</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================
            VIEW 5: ABOUT PAGE VIEW
            =================================================================== -->
       <div id="view-about" class="page-view">

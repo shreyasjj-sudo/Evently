@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollHeader();
   initCalendarDashboard();
   initMonthEventsView();
+  initProfilePage();
   
   // Initialize Router & Auth Guards
   Router.init();
@@ -332,10 +333,11 @@ export const Router = {
     '/calendar': 'view-calendar',
     '/events': 'view-events',
     '/event': 'view-event-detail',
+    '/profile': 'view-profile',
     '/about': 'view-about'
   },
 
-  protectedRoutes: ['/calendar', '/events', '/complete-profile'],
+  protectedRoutes: ['/calendar', '/events', '/complete-profile', '/profile'],
 
   init() {
     window.addEventListener('popstate', () => this.handleRoute());
@@ -468,11 +470,18 @@ export const Router = {
       } else if (path === '/events') {
         const eventsBtn = document.getElementById('btn-icon-nav-events');
         if (eventsBtn) eventsBtn.classList.add('active');
+      } else if (path === '/profile') {
+        const profileBtn = document.getElementById('btn-open-profile');
+        if (profileBtn) profileBtn.classList.add('active');
       }
     }
 
     if (path === '/complete-profile' && typeof window.populateProfileFormFromUser === 'function') {
       window.populateProfileFormFromUser();
+    }
+
+    if (path === '/profile' && typeof window.renderProfilePage === 'function') {
+      window.renderProfilePage();
     }
 
     if ((path === '/calendar' || path === '/events') && typeof window.refreshCalendar === 'function') {
@@ -500,14 +509,19 @@ export const Router = {
       if (authSlot) {
         authSlot.innerHTML = `
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            ${avatarHtml}
-            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-dark);">${displayName.split(' ')[0]}</span>
+            <a href="/profile" class="route-link" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; cursor: pointer;" title="View Student Profile">
+              ${avatarHtml}
+              <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-dark);">${displayName.split(' ')[0]}</span>
+            </a>
             <button type="button" class="btn btn-sm btn-outline logout-btn-trigger">Logout</button>
           </div>
         `;
       }
       if (mobileAuthSlot) {
-        mobileAuthSlot.innerHTML = `<button type="button" class="mobile-nav-btn logout-btn-trigger" style="background:#dc2626;">Sign out (${displayName.split(' ')[0]})</button>`;
+        mobileAuthSlot.innerHTML = `
+          <a href="/profile" class="mobile-nav-btn route-link" style="background:#ea580c;margin-bottom:0.5rem;">👤 View Profile (${displayName.split(' ')[0]})</a>
+          <button type="button" class="mobile-nav-btn logout-btn-trigger" style="background:#dc2626;">Sign out</button>
+        `;
       }
     } else {
       if (authSlot) {
@@ -2085,8 +2099,7 @@ function initCalendarDashboard() {
   if (navProfileBtn) {
     navProfileBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      renderStudentProfileModal();
-      if (profileModal) profileModal.setAttribute('aria-hidden', 'false');
+      Router.navigate('/profile');
     });
   }
   if (profileCloseBtn) profileCloseBtn.addEventListener('click', () => profileModal?.setAttribute('aria-hidden', 'true'));
@@ -2923,3 +2936,366 @@ function initScrollHeader() {
     }
   });
 }
+
+/* ==========================================================================
+   8. DEDICATED STUDENT PROFILE DASHBOARD (/profile)
+   ========================================================================== */
+
+let activeProfileTab = 'academic';
+const editSelectedInterests = new Set();
+
+export function initProfilePage() {
+  const profileView = document.getElementById('view-profile');
+  if (!profileView) return;
+
+  // 1. Tab Switching
+  const tabBtns = profileView.querySelectorAll('.profile-tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-tab');
+      switchProfileTab(targetTab);
+    });
+  });
+
+  // 2. Toggle Edit Mode Buttons
+  const toggleEditBtn = document.getElementById('btn-profile-toggle-edit');
+  const editDetailsBtn = document.getElementById('btn-edit-academic-details');
+  const cancelEditBtn = document.getElementById('btn-cancel-profile-edit');
+  const cancelEditBottomBtn = document.getElementById('btn-cancel-edit-bottom');
+
+  function showEditMode() {
+    const displayCard = document.getElementById('profile-display-mode');
+    const editCard = document.getElementById('profile-edit-mode');
+    if (displayCard) displayCard.classList.add('hidden');
+    if (editCard) editCard.classList.remove('hidden');
+    populateProfileEditForm();
+  }
+
+  function hideEditMode() {
+    const displayCard = document.getElementById('profile-display-mode');
+    const editCard = document.getElementById('profile-edit-mode');
+    if (displayCard) displayCard.classList.remove('hidden');
+    if (editCard) editCard.classList.add('hidden');
+  }
+
+  if (toggleEditBtn) toggleEditBtn.addEventListener('click', showEditMode);
+  if (editDetailsBtn) editDetailsBtn.addEventListener('click', showEditMode);
+  if (cancelEditBtn) cancelEditBtn.addEventListener('click', hideEditMode);
+  if (cancelEditBottomBtn) cancelEditBottomBtn.addEventListener('click', hideEditMode);
+
+  // 3. Edit Form Category Chips
+  const chipGrid = document.getElementById('edit-interests-chips');
+  if (chipGrid) {
+    chipGrid.querySelectorAll('.interest-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = chip.getAttribute('data-value');
+        if (editSelectedInterests.has(val)) {
+          editSelectedInterests.delete(val);
+          chip.classList.remove('selected');
+        } else {
+          editSelectedInterests.add(val);
+          chip.classList.add('selected');
+        }
+      });
+    });
+  }
+
+  // 4. Edit Form Submission
+  const editForm = document.getElementById('profile-page-edit-form');
+  if (editForm) {
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('btn-save-profile-edit');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+      }
+
+      const degree = document.getElementById('edit-profile-degree')?.value;
+      const college = document.getElementById('edit-profile-college')?.value?.trim();
+      const branch = document.getElementById('edit-profile-branch')?.value;
+      const gradYear = document.getElementById('edit-profile-grad-year')?.value;
+      const country = document.getElementById('edit-profile-country')?.value;
+
+      if (!degree || !college || !branch || !gradYear || !country) {
+        Router.showToastNotification('Required Fields', 'Please fill out all mandatory academic fields.');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+        return;
+      }
+
+      if (editSelectedInterests.size === 0) {
+        Router.showToastNotification('Interests Required', 'Please select at least one campus category of interest.');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+        return;
+      }
+
+      const user = AuthService.getUser() || {};
+      const updatedProfile = {
+        ...user,
+        degree,
+        college,
+        branch,
+        graduation_year: parseInt(gradYear, 10),
+        country,
+        interests: Array.from(editSelectedInterests),
+        profileCompleted: true
+      };
+
+      // Save to localStorage
+      localStorage.setItem(AUTH_KEY, JSON.stringify(updatedProfile));
+
+      // Sync to Cloud Run Backend
+      const token = await AuthService.getValidToken();
+      if (token) {
+        try {
+          await fetch(`${API_URL}/users/me/profile`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              degree,
+              college,
+              branch,
+              graduation_year: parseInt(gradYear, 10),
+              country,
+              interests: Array.from(editSelectedInterests)
+            })
+          });
+        } catch (err) {
+          console.warn('Profile backend sync error:', err);
+        }
+      }
+
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+      }
+
+      Router.showToastNotification('Profile Saved! ✨', 'Your academic credentials and preferences were updated.');
+      hideEditMode();
+      renderProfilePage();
+    });
+  }
+
+  // 5. Security Reset Password Button
+  const resetPwdBtn = document.getElementById('btn-security-reset-pwd');
+  if (resetPwdBtn) {
+    resetPwdBtn.addEventListener('click', () => {
+      openForgotPasswordModal();
+    });
+  }
+}
+
+function switchProfileTab(tabName) {
+  activeProfileTab = tabName;
+  const profileView = document.getElementById('view-profile');
+  if (!profileView) return;
+
+  profileView.querySelectorAll('.profile-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+  });
+
+  profileView.querySelectorAll('.profile-tab-pane').forEach(pane => {
+    pane.classList.toggle('active', pane.id === `pane-tab-${tabName}`);
+  });
+}
+
+function populateProfileEditForm() {
+  const user = AuthService.getUser() || {};
+  const deg = document.getElementById('edit-profile-degree');
+  const col = document.getElementById('edit-profile-college');
+  const brn = document.getElementById('edit-profile-branch');
+  const grd = document.getElementById('edit-profile-grad-year');
+  const cnt = document.getElementById('edit-profile-country');
+
+  if (deg && user.degree) deg.value = user.degree;
+  if (col && user.college) col.value = user.college;
+  if (brn && user.branch) brn.value = user.branch;
+  if (grd && user.graduation_year) grd.value = String(user.graduation_year);
+  if (cnt && user.country) cnt.value = user.country;
+
+  editSelectedInterests.clear();
+  const chipGrid = document.getElementById('edit-interests-chips');
+  if (chipGrid) {
+    const userInterests = Array.isArray(user.interests) && user.interests.length > 0 
+      ? user.interests 
+      : ['Coding Competitions', 'Technical & Hackathons', 'Technical Workshops'];
+    
+    chipGrid.querySelectorAll('.interest-chip').forEach(chip => {
+      const val = chip.getAttribute('data-value');
+      if (userInterests.includes(val)) {
+        editSelectedInterests.add(val);
+        chip.classList.add('selected');
+      } else {
+        chip.classList.remove('selected');
+      }
+    });
+  }
+}
+
+export function renderProfilePage() {
+  const user = AuthService.getUser();
+  if (!user) {
+    Router.navigate('/login');
+    return;
+  }
+
+  // 1. Hero Info
+  const nameEl = document.getElementById('profile-page-name');
+  const handleEl = document.getElementById('profile-page-handle');
+  const colDisplayEl = document.getElementById('profile-page-college-display');
+  const avatarSlot = document.getElementById('profile-page-avatar');
+
+  const displayName = user.name || user.username || 'Student User';
+  const usernameTag = user.username ? `@${user.username}` : `@${user.email?.split('@')[0] || 'student'}`;
+  const degreeStr = user.degree || 'B.E.';
+  const branchStr = user.branch || 'Computer Science & Engineering';
+  const collegeStr = user.college || 'Bangalore Institute of Technology';
+  const gradStr = user.graduation_year ? `Class of ${user.graduation_year}` : 'Class of 2027';
+
+  if (nameEl) nameEl.textContent = displayName;
+  if (handleEl) handleEl.textContent = `${usernameTag} · ${user.email || 'student@college.edu'}`;
+  if (colDisplayEl) colDisplayEl.textContent = `📍 ${collegeStr} · ${degreeStr} ${branchStr} · ${gradStr}`;
+
+  if (avatarSlot) {
+    if (user.avatar) {
+      avatarSlot.innerHTML = `<img src="${user.avatar}" alt="${displayName}" />`;
+    } else {
+      avatarSlot.innerHTML = `🎓`;
+    }
+  }
+
+  // 2. Stats Ribbon
+  const regIds = AuthService.getRegistrations();
+  const regCount = regIds.length;
+  const masterEvents = getMasterEventsList();
+  const regEvents = masterEvents.filter(e => regIds.includes(e.id));
+
+  const totalPoints = 200 + (regCount * 100);
+  let tierName = 'Campus Explorer';
+  let nextMilestone = 300;
+  if (totalPoints >= 600) {
+    tierName = 'Campus Legend';
+    nextMilestone = 1000;
+  } else if (totalPoints >= 400) {
+    tierName = 'Campus Ambassador';
+    nextMilestone = 600;
+  }
+  const pct = Math.min(100, Math.round((totalPoints / nextMilestone) * 100));
+
+  const passesStat = document.getElementById('profile-stat-passes');
+  const pointsStat = document.getElementById('profile-stat-points');
+  const tierStat = document.getElementById('profile-stat-tier');
+  const passTabCount = document.getElementById('tab-pass-count');
+
+  if (passesStat) passesStat.textContent = `${regCount} Active`;
+  if (pointsStat) pointsStat.textContent = `${totalPoints} PTS`;
+  if (tierStat) tierStat.textContent = tierName;
+  if (passTabCount) passTabCount.textContent = String(regCount);
+
+  // 3. Tab 1 - Read Only Details
+  const viewDeg = document.getElementById('view-deg-val');
+  const viewCol = document.getElementById('view-college-val');
+  const viewBrn = document.getElementById('view-branch-val');
+  const viewGrd = document.getElementById('view-grad-val');
+  const viewCnt = document.getElementById('view-country-val');
+  const viewEml = document.getElementById('view-email-val');
+  const interestsContainer = document.getElementById('profile-display-interests');
+
+  if (viewDeg) viewDeg.textContent = degreeStr;
+  if (viewCol) viewCol.textContent = collegeStr;
+  if (viewBrn) viewBrn.textContent = branchStr;
+  if (viewGrd) viewGrd.textContent = gradStr;
+  if (viewCnt) viewCnt.textContent = `${user.country || 'India'} 🇮🇳`;
+  if (viewEml) viewEml.textContent = user.email || 'student@college.edu';
+
+  if (interestsContainer) {
+    const list = Array.isArray(user.interests) && user.interests.length > 0 
+      ? user.interests 
+      : ['Technical Workshops', 'Coding Competitions', 'Technical & Hackathons'];
+    interestsContainer.innerHTML = list.map(cat => `
+      <span class="profile-cat-chip">
+        <span>🏷️</span>
+        <span>${cat}</span>
+      </span>
+    `).join('');
+  }
+
+  // 4. Tab 2 - My Passes Grid
+  const passesContainer = document.getElementById('profile-passes-container');
+  if (passesContainer) {
+    if (regEvents.length === 0) {
+      passesContainer.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted); background: var(--bg-secondary); border-radius: 14px; border: 1px dashed var(--border-color);">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎫</div>
+          <h4 style="color: var(--text-dark); margin: 0 0 0.25rem;">No Active Event Registrations</h4>
+          <p style="font-size: 0.85rem; margin-bottom: 1rem;">Explore the college calendar to reserve your spot and claim digital entry passes.</p>
+          <a href="/calendar" class="btn btn-sm btn-primary route-link">Browse Calendar Events</a>
+        </div>
+      `;
+    } else {
+      passesContainer.innerHTML = regEvents.map(evt => `
+        <div class="ticket-card" style="box-shadow: var(--shadow-sm); transition: transform 0.2s ease;">
+          <div class="ticket-info">
+            <span class="event-cat-badge">${evt.category.toUpperCase()}</span>
+            <h4>${evt.title}</h4>
+            <p>📅 ${evt.displayDate} | ⏰ ${evt.time}</p>
+            <p>📍 ${evt.venue}</p>
+            <div style="margin-top: 0.75rem;">
+              <a href="/event?id=${evt.id}" class="btn btn-xs btn-outline route-link">View Event Details →</a>
+            </div>
+          </div>
+          <div class="ticket-qr">
+            <svg width="70" height="70" viewBox="0 0 100 100">
+              <rect width="100" height="100" fill="#ffffff" />
+              <path d="M10 10h30v30h-30zM60 10h30v30h-30zM10 60h30v30h-30zM20 20h10v10h-10zM70 20h10v10h-10zM20 70h10v10h-10zM50 50h10v10h-10zM70 70h20v20h-20z" fill="#0f172a" />
+            </svg>
+            <span style="font-size:0.62rem; font-weight:800; color:#ea580c; margin-top:3px;">PASS ACTIVE</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // 5. Tab 3 - Achievements & Badges
+  const tierTag = document.getElementById('profile-achieve-tier');
+  const headingTag = document.getElementById('profile-achieve-heading');
+  const pctTag = document.getElementById('profile-achieve-pct');
+  const barTag = document.getElementById('profile-achieve-bar');
+  const badgesGrid = document.getElementById('profile-page-badges-grid');
+
+  if (tierTag) tierTag.textContent = `TIER: ${tierName.toUpperCase()}`;
+  if (headingTag) headingTag.textContent = `Milestone Target: ${nextMilestone} PTS (${totalPoints} Current)`;
+  if (pctTag) pctTag.textContent = `${pct}%`;
+  if (barTag) barTag.style.width = `${pct}%`;
+
+  const hasHackathon = regEvents.some(e => (e.category || '').toLowerCase().includes('hackathon') || (e.category || '').toLowerCase().includes('tech'));
+  const hasCoding = regEvents.some(e => (e.category || '').toLowerCase().includes('coding') || (e.category || '').toLowerCase().includes('competition'));
+  const hasCultural = regEvents.some(e => (e.category || '').toLowerCase().includes('cultural') || (e.category || '').toLowerCase().includes('arts'));
+  const hasSports = regEvents.some(e => (e.category || '').toLowerCase().includes('sport'));
+
+  const badges = [
+    { icon: '🎓', title: 'Verified Student', desc: 'Active Evently Profile', unlocked: true },
+    { icon: '🎟️', title: 'Pass Holder', desc: 'Registered for an Event', unlocked: regCount > 0 },
+    { icon: '💻', title: 'Code Pioneer', desc: 'Coding Contests', unlocked: hasCoding },
+    { icon: '⚡', title: 'Hackathon Hero', desc: 'Tech Hackathons', unlocked: hasHackathon },
+    { icon: '🎭', title: 'Culture Icon', desc: 'Campus Arts & Fest', unlocked: hasCultural },
+    { icon: '⚽', title: 'Athlete Spirit', desc: 'Sports & Fitness', unlocked: hasSports }
+  ];
+
+  if (badgesGrid) {
+    badgesGrid.innerHTML = badges.map(b => `
+      <div style="background: ${b.unlocked ? 'var(--bg-secondary)' : 'rgba(0,0,0,0.02)'}; border: 1px solid ${b.unlocked ? '#ea580c' : 'var(--border-color)'}; border-radius: 12px; padding: 1rem 0.85rem; text-align: center; opacity: ${b.unlocked ? '1' : '0.5'}; box-shadow: var(--shadow-sm);">
+        <div style="font-size: 2rem; margin-bottom: 0.35rem;">${b.icon}</div>
+        <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-dark);">${b.title}</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">${b.desc}</div>
+        <div style="font-size: 0.68rem; font-weight: 800; color: ${b.unlocked ? '#ea580c' : 'var(--text-muted)'}; margin-top: 6px;">
+          ${b.unlocked ? '✓ UNLOCKED' : '🔒 LOCKED'}
+        </div>
+      </div>
+    `).join('');
+  }
+}
+window.renderProfilePage = renderProfilePage;
