@@ -3190,7 +3190,7 @@ export function renderProfilePage() {
   const tierStat = document.getElementById('profile-stat-tier');
   const passTabCount = document.getElementById('tab-pass-count');
 
-  if (passesStat) passesStat.textContent = `${regCount} Active`;
+  if (passesStat) passesStat.innerHTML = `${regCount} <span style="font-size: 0.82rem; font-weight: 600; color: #ea580c; margin-left: 0.35rem;">Active</span>`;
   if (pointsStat) pointsStat.textContent = `${totalPoints} PTS`;
   if (tierStat) tierStat.textContent = tierName;
   if (passTabCount) passTabCount.textContent = String(regCount);
